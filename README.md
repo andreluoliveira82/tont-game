@@ -1,29 +1,38 @@
-# Documentação revisada — tont-game
+# tont-game
 
-Este diretório contém a documentação revisada para inicialização do projeto `tont-game`.
+Implementação digital do jogo "Topa ou Não Topa", com interface de linha de comando (CLI) em Português do Brasil.
 
-Arquivos:
+A CLI é a primeira interface do projeto, não o seu núcleo: as regras de negócio residem em um domínio independente da interface, preparado para futura evolução (GUI, persistência), conforme descrito na documentação.
 
-- `llm-instructions.md` — regras operacionais para o LLM.
-- `prd.md` — requisitos do produto.
-- `game-rules.md` — regras oficiais do jogo.
-- `glossary.md` — vocabulário do domínio.
-- `architecture.md` — arquitetura e organização técnica.
-- `roadmap.md` — fases de desenvolvimento.
+## Documentação
 
-## Ordem recomendada
+A documentação oficial do projeto está em `docs/` e na raiz:
 
-1. Copiar `llm-instructions.md` para a raiz do projeto.
-2. Criar `docs/`.
-3. Copiar `prd.md`, `game-rules.md`, `glossary.md`, `architecture.md` e `roadmap.md` para `docs/`.
-4. Criar `docs/decisions/`.
-5. Inicializar o Git.
-6. Abrir o projeto no VSCode.
-7. Iniciar o LLM CLI.
-8. Pedir ao LLM para ler toda a documentação.
-9. Solicitar que execute somente a Fase 1 do roadmap.
-10. Validar o resultado antes de avançar.
+- [`llm-instructions.md`](llm-instructions.md) — regras operacionais para o desenvolvimento assistido por LLM (permanece exclusivamente na raiz).
+- [`docs/prd.md`](docs/prd.md) — requisitos do produto.
+- [`docs/game-rules.md`](docs/game-rules.md) — regras oficiais do jogo (fonte de verdade das regras de negócio).
+- [`docs/glossary.md`](docs/glossary.md) — vocabulário do domínio.
+- [`docs/architecture.md`](docs/architecture.md) — arquitetura e organização técnica.
+- [`docs/roadmap.md`](docs/roadmap.md) — fases de desenvolvimento.
+- [`docs/decisions/`](docs/decisions/) — registros de decisão (ADRs).
 
-## Observação
+Ordem de leitura recomendada antes de qualquer desenvolvimento: `llm-instructions.md` → `prd.md` → `game-rules.md` → `glossary.md` → `architecture.md` → `roadmap.md` → `docs/decisions/`.
 
-A tabela de valores das maletas foi explicitamente definida como decisão inicial de produto em `game-rules.md`. Caso a intenção seja reproduzir uma tabela específica de uma versão televisiva, substitua essa decisão antes de iniciar a implementação.
+## Resumo do jogo
+
+- 26 maletas, cada uma com um valor monetário.
+- O jogador escolhe uma maleta inicial, que fica protegida durante as rodadas.
+- 9 rodadas de abertura: `6, 5, 4, 3, 2, 1, 1, 1, 1` (24 maletas abertas).
+- Ao final de cada rodada, o Banqueiro faz uma oferta; o jogador escolhe **Topa** (aceita, encerra) ou **Não Topa** (continua).
+- Ao final da Rodada 9 restam duas maletas fechadas; após a última oferta, se o jogador recusar, decide opcionalmente pela **troca final**.
+- Após aceitar uma oferta, o jogador pode executar uma **simulação pós-jogo** opcional, que não altera o resultado oficial.
+
+Detalhes completos em [`docs/game-rules.md`](docs/game-rules.md) e nos ADRs.
+
+## Estado do projeto
+
+Fase 0 (documentação e decisões) concluída. O desenvolvimento segue o [`roadmap.md`](docs/roadmap.md), uma fase por vez, começando pela Fase 1 (setup).
+
+## Ferramentas
+
+`uv`, `ruff`, `pytest` e `taskipy`. Os comandos principais serão disponibilizados via `taskipy` a partir da Fase 1.

@@ -6,11 +6,11 @@ Uma das 26 maletas disponíveis na partida.
 
 ## Player Briefcase
 
-A maleta escolhida inicialmente pelo jogador.
+A maleta escolhida inicialmente pelo jogador (`player_briefcase`). Permanece fechada durante as rodadas normais. Não pertence a `available_briefcases`, mas seu **valor** pertence a `remaining_values`.
 
 ## Available Briefcase
 
-Maleta que ainda está fechada e pode ser escolhida para abertura em uma rodada normal.
+Maleta que ainda está fechada e pode ser escolhida para abertura em uma rodada normal. O conjunto dessas maletas é `available_briefcases` e **não** inclui a maleta do jogador.
 
 ## Opened Briefcase
 
@@ -20,13 +20,21 @@ Maleta que já foi aberta e cujo valor foi revelado.
 
 Valor associado a uma maleta que ainda permanece fechada.
 
+## Remaining Values
+
+Conjunto de **valores** ainda não revelados. Inclui o valor da maleta do jogador **e** os valores das maletas que ainda permanecem fechadas. É a base de cálculo da oferta do Banqueiro. Difere de `available_briefcases`, que se refere a maletas abríveis.
+
+## Available Briefcases
+
+Conjunto de **maletas** fechadas que podem ser abertas em uma rodada normal. Não inclui a maleta do jogador.
+
 ## Known Value
 
 Valor que já foi revelado ao jogador por meio da abertura de uma maleta.
 
 ## Round
 
-Etapa do jogo durante a qual uma quantidade definida de maletas deve ser aberta.
+Etapa do jogo durante a qual uma quantidade definida de maletas deve ser aberta. O jogo possui 9 rodadas, com a sequência de abertura `6, 5, 4, 3, 2, 1, 1, 1, 1`.
 
 ## Banker
 
@@ -34,29 +42,35 @@ Componente responsável pela política de cálculo das ofertas.
 
 ## Banker Offer
 
-Valor monetário oferecido ao jogador pelo Banqueiro.
+Valor monetário oferecido ao jogador pelo Banqueiro ao final de cada rodada.
 
 ## Offer Percentage
 
-Percentual aplicado à base matemática utilizada para calcular uma oferta.
+Percentual aplicado à média dos valores restantes para calcular uma oferta. Definido por rodada na política inicial da estratégia.
+
+## Banker Strategy
+
+Política utilizada para determinar o valor da oferta do Banqueiro. Deve ser isolada e substituível. A estratégia inicial baseia-se apenas no estado atual e na rodada atual, sem depender do histórico de ofertas.
 
 ## Topa
 
-Decisão do jogador de aceitar a oferta do Banqueiro.
+Decisão do jogador de aceitar a oferta do Banqueiro. Encerra a partida oficial.
 
 ## Não Topa
 
 Decisão do jogador de recusar a oferta e continuar a partida.
 
-## Swap
+## Swap (Troca Final)
 
-Troca da maleta do jogador por outra maleta elegível, quando a regra da partida permitir.
+Troca opcional da maleta do jogador pela última maleta fechada, disponível apenas no endgame, após a recusa da oferta da Rodada 9. A última maleta fechada é a única elegível.
+
+## Endgame
+
+Fase final da partida, após a Rodada 9, quando restam exatamente duas maletas fechadas: a do jogador e a última maleta disponível. Inclui a oferta da Rodada 9 e a decisão de troca final.
 
 ## Game State
 
-Estado completo da partida em determinado momento.
-
-Deve representar informações como:
+Estado atual (corrente) da partida em determinado momento. Representa informações como:
 
 - maletas;
 - maleta do jogador;
@@ -64,7 +78,9 @@ Deve representar informações como:
 - maletas abertas;
 - valores revelados;
 - oferta atual;
-- estado da partida.
+- estado do ciclo de vida da partida.
+
+Distingue-se do histórico: o estado atual descreve a situação corrente; o histórico registra a sequência de eventos e resultados.
 
 ## Game Status
 
@@ -74,16 +90,21 @@ Estado do ciclo de vida da partida, por exemplo:
 - `IN_PROGRESS`;
 - `OFFER_PENDING`;
 - `ACCEPTED`;
+- `FINAL_SWAP_PENDING`;
 - `FINAL_REVEAL`;
 - `FINISHED`.
 
-## Remaining Values
+## Official Result (Resultado Oficial)
 
-Conjunto de valores ainda associados às maletas fechadas.
+Resultado registrado imediatamente no encerramento oficial da partida. Contém o motivo do encerramento, o valor oficial recebido, o valor real da maleta do jogador e a decisão de troca quando aplicável. Nunca é alterado por simulações posteriores.
 
-## Available Briefcases
+## Post-Game Simulation (Simulação Pós-Jogo)
 
-Conjunto de maletas fechadas que podem ser abertas em uma rodada normal.
+Experiência opcional, executada após a aceitação de uma oferta, que revela o que teria acontecido se o jogador tivesse continuado. Usa a mesma distribuição de valores e o estado do momento da aceitação, sem gerar nova partida nem alterar o resultado oficial. Produz um resultado hipotético comparado ao oficial.
+
+## Game Record (Histórico da Partida)
+
+Registro estruturado, mantido em memória, que permite reconstruir a narrativa completa da partida: configuração inicial, histórico por rodada, resultado oficial e simulação pós-jogo (quando houver). Concebido para poder ser persistido futuramente sem acoplar o domínio a uma tecnologia específica.
 
 ## Domain Rule
 
@@ -97,12 +118,10 @@ Operação da aplicação que representa uma ação relevante do usuário ou do 
 
 Interface de linha de comando utilizada como primeira interface do projeto.
 
-## Banker Strategy
+## Presenter / Apresentador
 
-Política utilizada para determinar o valor da oferta do Banqueiro.
+Na CLI, o Apresentador conduz o fluxo de interação com o jogador (ofertas, decisões, oferta de simulação pós-jogo). É responsabilidade de apresentação, não do domínio.
 
 ## Random Source
 
-Fonte de aleatoriedade utilizada para embaralhar os valores das maletas.
-
-Pode ser substituída por uma fonte determinística em testes.
+Fonte de aleatoriedade utilizada para embaralhar os valores das maletas. Pode ser substituída por uma fonte determinística em testes. A simulação pós-jogo não realiza novo embaralhamento.

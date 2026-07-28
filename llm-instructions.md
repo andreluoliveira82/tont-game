@@ -12,9 +12,11 @@ Antes de gerar ou alterar qualquer código, o LLM deve ler, nesta ordem:
 4. `docs/glossary.md`
 5. `docs/architecture.md`
 6. `docs/roadmap.md`
-7. Eventuais documentos em `docs/decisions/`
+7. Os registros de decisão em `docs/decisions/` (ADRs 0001 a 0005 e eventuais novos).
 
-Esses documentos formam a fonte oficial de contexto do projeto.
+Esses documentos formam a fonte oficial de contexto do projeto. Os ADRs em `docs/decisions/` são autoritativos para as decisões que cobrem (estrutura de rodadas e endgame, estratégia do Banqueiro, troca final, simulação pós-jogo, histórico e persistência).
+
+Este arquivo (`llm-instructions.md`) reside exclusivamente na raiz do projeto e não deve ser duplicado em `docs/`.
 
 ---
 
