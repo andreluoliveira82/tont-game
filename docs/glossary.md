@@ -112,7 +112,7 @@ Composição operacional da partida na camada de aplicação: agrupa o `GameStat
 
 ## Round Record
 
-Registro dos fatos de uma rodada: maletas abertas (`BriefcaseOpeningRecord`), oferta do Banqueiro (`BankerOfferRecord`) e decisão do jogador (`Decision`).
+Registro **imutável** (`frozen`) dos fatos de uma rodada: maletas abertas (`BriefcaseOpeningRecord`), oferta do Banqueiro (`BankerOfferRecord`) e decisão do jogador (`Decision`). Evolui por operações `with_*` que retornam nova instância; o `GameRecord` é a única autoridade que o acumula.
 
 ## Briefcase Opening Record
 
@@ -125,6 +125,22 @@ Fato imutável de uma oferta: número da rodada, valor da oferta, **percentual u
 ## Decision
 
 Decisão do jogador diante de uma oferta: `ACCEPT` (Topa) ou `REJECT` (Não Topa). Registrada no `RoundRecord` correspondente.
+
+## Ending Type
+
+Tipo de encerramento oficial da partida, registrado no `OfficialResult`: `OFFER_ACCEPTED` (Topa), `FINAL_REVEAL_WITH_SWAP` e `FINAL_REVEAL_WITHOUT_SWAP` (endgame — Fase 5.5). Na Fase 5 apenas `OFFER_ACCEPTED` é produzido; os demais estão definidos, mas ainda não são gerados.
+
+## Append-only
+
+Propriedade de um registro que apenas cresce: novos fatos são acrescentados e os fatos passados nunca são sobrescritos nem removidos. É a propriedade do `GameRecord`.
+
+## Write-once
+
+Fato singular que pode ser gravado uma única vez (ex.: a oferta e a decisão de uma rodada, o `OfficialResult`); uma segunda tentativa é rejeitada com erro de domínio.
+
+## FINAL_SWAP_PENDING
+
+Estado do ciclo de vida atingido quando o jogador recusa a oferta da Rodada 9 (restam a maleta do jogador e a última maleta fechada). Na Fase 5 a transição ocorre mas **não é consumida**; a decisão de troca, a revelação e o encerramento pertencem à Fase 5.5.
 
 ## Clock
 

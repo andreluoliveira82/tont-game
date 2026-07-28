@@ -65,9 +65,19 @@ rodada da decisão. Os desfechos de endgame (`FINAL_REVEAL_WITH_SWAP`/
 
 ### Imutabilidade
 
-Folhas `frozen`; contêineres (`GameRecord`, `RoundRecord`) append-only com
-operações write-once para fatos singulares (oferta, decisão, resultado) e
-acessores que devolvem tuplas (cópia defensiva). Sem event sourcing.
+Folhas `frozen` (`BriefcaseOpeningRecord`, `BankerOfferRecord`, `OfficialResult`).
+`RoundRecord` também é `frozen` (imutável): evolui por operações `with_opening`/
+`with_offer`/`with_decision` que retornam uma nova instância, com `with_offer`/
+`with_decision` write-once. O `GameRecord` é a **única autoridade append-only**:
+mantém a lista interna de rodadas e a evolui substituindo a própria entrada;
+`official_result` é write-once. Os acessores devolvem tuplas de objetos
+imutáveis (cópia defensiva), de modo que uma rodada entregue por `rounds` não
+pode ser alterada retroativamente. Sem event sourcing.
+
+> Nota (implementação, Fase 5, commit `2661ef7`): na revisão final o
+> `RoundRecord` foi consolidado como imutável (frozen) — antes era um contêiner
+> mutável — para eliminar qualquer alteração retroativa do histórico via os
+> objetos entregues por `rounds`.
 
 ### Ports de tempo e identificação
 

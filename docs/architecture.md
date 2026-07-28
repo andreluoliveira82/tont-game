@@ -90,7 +90,7 @@ tont-game/
 │       │   ├── history/              # (Fase 5)
 │       │   │   ├── records.py        # BriefcaseOpeningRecord, BankerOfferRecord,
 │       │   │   │                     # OfficialResult, Decision, EndingType
-│       │   │   ├── round_record.py   # RoundRecord (append-only)
+│       │   │   ├── round_record.py   # RoundRecord (imutável/frozen)
 │       │   │   └── game_record.py    # GameRecord (append-only)
 │       │   └── value_objects/
 │       │       ├── money.py

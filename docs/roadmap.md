@@ -107,23 +107,24 @@ O LLM não deve avançar automaticamente para a próxima fase.
 
 # Fase 5 — Application, GameRecord e Resultado Oficial
 
+**Status:** ✅ Concluída — commit `2661ef7` (camada Application, histórico factual e resultado oficial; 115 testes). **Não** inclui o endgame (Swap/Reveal), que é a Fase 5.5.
+
 Escopo: camada Application (casos de uso do fluxo normal), histórico factual e
-resultado oficial. **Não** inclui o endgame (Swap/Reveal), que fica na Fase 5.5.
-Ver `docs/decisions/0006-camada-application-e-historico.md`.
+resultado oficial. Ver `docs/decisions/0006-camada-application-e-historico.md`.
 
-- [ ] Criar a camada `application/` e `GameSession` (composição `GameState` + `GameRecord`).
-- [ ] `StartGame` (cria estado embaralhado + `GameRecord`: id, `started_at`, distribuição concreta, seed).
-- [ ] `SelectInitialBriefcase`.
-- [ ] `OpenBriefcase`.
-- [ ] `ProcessBankerOffer`.
-- [ ] `DecideOffer` (Topa: `OfficialResult` imutável; Não Topa intermediário: registra e avança).
-- [ ] Modelo de histórico no domínio: `GameRecord` (append-only), `RoundRecord`, `BriefcaseOpeningRecord`, `BankerOfferRecord` (com percentual), `Decision`, `OfficialResult` (write-once).
-- [ ] Ports `Clock` e `GameIdGenerator` (domínio) + implementações `SystemClock` e `UuidGameIdGenerator` (infra).
-- [ ] Evoluir `GameState`: oferta pendente, `accept_offer`, `reject_offer` e transições de status (`OFFER_PENDING`, `ACCEPTED`; recusa da R9 → `FINAL_SWAP_PENDING`, **sem consumir**).
-- [ ] Expor `percentage_for_round` no port `BankerStrategy` (auditoria do histórico).
-- [ ] Testes de domínio, aplicação, infraestrutura e integração (cenário Topa completo).
+- [x] Criar a camada `application/` e `GameSession` (composição `GameState` + `GameRecord`).
+- [x] `StartGame` (cria estado embaralhado + `GameRecord`: id, `started_at`, distribuição concreta, seed).
+- [x] `SelectInitialBriefcase`.
+- [x] `OpenBriefcase`.
+- [x] `ProcessBankerOffer`.
+- [x] `DecideOffer` (Topa: `OfficialResult` imutável; Não Topa intermediário: registra e avança).
+- [x] Modelo de histórico no domínio: `GameRecord` (append-only), `RoundRecord` (imutável/frozen), `BriefcaseOpeningRecord`, `BankerOfferRecord` (com percentual), `Decision`, `EndingType`, `OfficialResult` (write-once).
+- [x] Ports `Clock` e `GameIdGenerator` (domínio) + implementações `SystemClock` e `UuidGameIdGenerator` (infra).
+- [x] Evoluir `GameState`: oferta pendente, `accept_offer`, `reject_offer` e transições de status (`OFFER_PENDING`, `ACCEPTED`; recusa da R9 → `FINAL_SWAP_PENDING`, **sem consumir**).
+- [x] Expor `percentage_for_round` no port `BankerStrategy` (auditoria do histórico).
+- [x] Testes de domínio, aplicação, infraestrutura e integração (cenário Topa completo).
 
-**Critério de saída:** uma partida pode ser jogada sem CLI até o **Topa**, com `GameRecord` completo e `OfficialResult` imutável; recusas intermediárias são registradas; a recusa da R9 leva o estado a `FINAL_SWAP_PENDING` (endgame não implementado nesta fase).
+**Critério de saída:** uma partida pode ser jogada sem CLI até o **Topa**, com `GameRecord` completo e `OfficialResult` imutável; recusas intermediárias são registradas; a recusa da R9 leva o estado a `FINAL_SWAP_PENDING` (endgame não implementado nesta fase). ✅ Atendido.
 
 ---
 
