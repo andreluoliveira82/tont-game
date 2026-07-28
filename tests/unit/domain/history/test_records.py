@@ -59,3 +59,37 @@ def test_official_result_is_frozen() -> None:
     )
     with pytest.raises(FrozenInstanceError):
         result.amount_received = Money.of("1")  # type: ignore[misc]
+
+
+def test_official_result_from_final_reveal_without_swap() -> None:
+    result = OfficialResult.from_final_reveal(
+        swap_decision=False,
+        player_briefcase_value=Money.of("100"),
+        final_briefcase_number=7,
+        final_briefcase_value=Money.of("100"),
+    )
+    assert result.ending_type is EndingType.FINAL_REVEAL_WITHOUT_SWAP
+    assert result.swap_decision is False
+    assert result.amount_received == Money.of("100")
+    assert result.final_briefcase_number == 7
+    assert result.final_briefcase_value == Money.of("100")
+    assert result.player_briefcase_value == Money.of("100")
+    assert result.accepted_offer is None
+    assert result.decision_round is None
+
+
+def test_official_result_from_final_reveal_with_swap() -> None:
+    result = OfficialResult.from_final_reveal(
+        swap_decision=True,
+        player_briefcase_value=Money.of("50"),
+        final_briefcase_number=13,
+        final_briefcase_value=Money.of("500"),
+    )
+    assert result.ending_type is EndingType.FINAL_REVEAL_WITH_SWAP
+    assert result.swap_decision is True
+    assert result.amount_received == Money.of("500")
+    assert result.final_briefcase_number == 13
+    assert result.final_briefcase_value == Money.of("500")
+    assert result.player_briefcase_value == Money.of("50")
+    assert result.accepted_offer is None
+    assert result.decision_round is None

@@ -79,3 +79,33 @@ class OfficialResult:
             accepted_offer=accepted_offer,
             decision_round=decision_round,
         )
+
+    @classmethod
+    def from_final_reveal(
+        cls,
+        swap_decision: bool,
+        player_briefcase_value: Money,
+        final_briefcase_number: int,
+        final_briefcase_value: Money,
+    ) -> "OfficialResult":
+        """Build the official result for the endgame final reveal.
+
+        ``player_briefcase_value`` is the value of the originally chosen
+        briefcase; ``final_briefcase_*`` describe the briefcase the player ends
+        with (the original one when there is no swap).
+        """
+        ending_type = (
+            EndingType.FINAL_REVEAL_WITH_SWAP
+            if swap_decision
+            else EndingType.FINAL_REVEAL_WITHOUT_SWAP
+        )
+        return cls(
+            ending_type=ending_type,
+            amount_received=final_briefcase_value,
+            player_briefcase_value=player_briefcase_value,
+            accepted_offer=None,
+            decision_round=None,
+            swap_decision=swap_decision,
+            final_briefcase_number=final_briefcase_number,
+            final_briefcase_value=final_briefcase_value,
+        )

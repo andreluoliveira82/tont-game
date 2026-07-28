@@ -47,6 +47,7 @@ class GameState:
         self._current_round = 1
         self._openings_in_current_round = 0
         self._current_offer: Money | None = None
+        self._final_swap_applied = False
 
     @classmethod
     def create(
@@ -174,6 +175,38 @@ class GameState:
             self._status = GameStatus.IN_PROGRESS
         else:
             self._status = GameStatus.FINAL_SWAP_PENDING
+
+    # --- endgame -------------------------------------------------------------
+
+    def apply_final_swap(self) -> None:
+        """Swap the player's briefcase for the single remaining closed one.
+
+        Only valid in ``FINAL_SWAP_PENDING`` and at most once.
+        """
+        self._ensure_status(GameStatus.FINAL_SWAP_PENDING)
+        if self._final_swap_applied:
+            raise InvalidGameStateError("The final swap has already been applied.")
+        others = self.available_briefcases()
+        if len(others) != 1:
+            raise InvalidGameStateError(
+                "The final swap requires exactly one other closed briefcase."
+            )
+        self._player_number = others[0].number
+        self._final_swap_applied = True
+
+    def reveal_final_and_finish(self) -> Money:
+        """Reveal the two last briefcases and finish the game.
+
+        Only valid in ``FINAL_SWAP_PENDING``. Returns the value of the player's
+        final briefcase. Transitions directly to ``FINISHED``.
+        """
+        self._ensure_status(GameStatus.FINAL_SWAP_PENDING)
+        for briefcase in self.closed_briefcases():
+            briefcase.open()
+        self._status = GameStatus.FINISHED
+        final_briefcase = self.player_briefcase
+        assert final_briefcase is not None  # player is always set at endgame
+        return final_briefcase.value
 
     # --- queries -------------------------------------------------------------
 
