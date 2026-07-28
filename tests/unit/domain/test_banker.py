@@ -50,9 +50,26 @@ def test_a_custom_strategy_is_substitutable() -> None:
         def offer(self, remaining_values: Sequence[Money], round_number: int) -> Money:
             return Money.of("1.00")
 
+        def percentage_for_round(self, round_number: int) -> Decimal:
+            return Decimal("0.50")
+
     strategy = FixedOfferStrategy()
     assert isinstance(strategy, BankerStrategy)
     assert strategy.offer(money_list("10", "20"), 1) == Money.of("1.00")
+
+
+def test_percentage_for_round_returns_the_round_percentage() -> None:
+    strategy = DefaultBankerStrategy()
+    assert strategy.percentage_for_round(1) == Decimal("0.35")
+    assert strategy.percentage_for_round(9) == Decimal("0.95")
+
+
+def test_percentage_for_round_rejects_unknown_round() -> None:
+    strategy = DefaultBankerStrategy()
+    with pytest.raises(BankerStrategyError):
+        strategy.percentage_for_round(0)
+    with pytest.raises(BankerStrategyError):
+        strategy.percentage_for_round(10)
 
 
 # --- formula ----------------------------------------------------------------

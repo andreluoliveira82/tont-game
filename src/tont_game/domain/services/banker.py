@@ -40,6 +40,14 @@ class BankerStrategy(Protocol):
         """Return the banker's offer for the given remaining values and round."""
         ...
 
+    def percentage_for_round(self, round_number: int) -> Decimal:
+        """Return the percentage the policy applies in the given round.
+
+        Reported for auditing (recorded in the game history), independently of
+        being derivable from the offer.
+        """
+        ...
+
 
 class DefaultBankerStrategy:
     """Initial banker policy: mean of remaining values times a round percentage.
@@ -59,14 +67,17 @@ class DefaultBankerStrategy:
             raise BankerStrategyError(
                 "Cannot compute an offer with no remaining values."
             )
+        percentage = self.percentage_for_round(round_number)
+        total = sum((value.amount for value in remaining_values), Decimal(0))
+        mean = total / Decimal(len(remaining_values))
+        return Money.of(mean * percentage)
+
+    def percentage_for_round(self, round_number: int) -> Decimal:
         if not 1 <= round_number <= len(self._percentages):
             raise BankerStrategyError(
                 f"Round {round_number} has no configured percentage."
             )
-        percentage = self._percentages[round_number - 1]
-        total = sum((value.amount for value in remaining_values), Decimal(0))
-        mean = total / Decimal(len(remaining_values))
-        return Money.of(mean * percentage)
+        return self._percentages[round_number - 1]
 
     @staticmethod
     def _validate_percentages(percentages: tuple[Decimal, ...]) -> None:

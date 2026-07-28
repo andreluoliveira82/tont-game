@@ -50,3 +50,15 @@ class BankerStrategyError(DomainError):
     such as an unfinished round or a finished game — those are the concern of
     the ProcessBankerOffer use case (Phase 5).
     """
+
+
+class NoPendingOfferError(DomainError):
+    """Raised when accepting/rejecting an offer while none is pending."""
+
+
+class HistoryError(DomainError):
+    """Base class for violations while recording the game history."""
+
+
+class OfficialResultAlreadySetError(HistoryError):
+    """Raised when trying to set the official result more than once."""

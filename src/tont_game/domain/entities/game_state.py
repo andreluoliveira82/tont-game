@@ -19,6 +19,7 @@ from tont_game.domain.errors import (
     InvalidBriefcaseNumberError,
     InvalidGameStateError,
     NoMoreRoundsError,
+    NoPendingOfferError,
     PlayerBriefcaseProtectedError,
     RoundLimitExceededError,
     RoundNotCompleteError,
@@ -45,6 +46,7 @@ class GameState:
         self._status = GameStatus.NOT_STARTED
         self._current_round = 1
         self._openings_in_current_round = 0
+        self._current_offer: Money | None = None
 
     @classmethod
     def create(
@@ -131,6 +133,47 @@ class GameState:
             raise NoMoreRoundsError("There are no more rounds to advance to.")
         self._current_round += 1
         self._openings_in_current_round = 0
+
+    # --- offer and decision --------------------------------------------------
+
+    @property
+    def current_offer(self) -> Money | None:
+        return self._current_offer
+
+    def is_over(self) -> bool:
+        return self._status in (GameStatus.ACCEPTED, GameStatus.FINISHED)
+
+    def set_pending_offer(self, offer: Money) -> None:
+        """Register the banker's offer for the (completed) current round."""
+        self._ensure_status(GameStatus.IN_PROGRESS)
+        if not self.is_current_round_complete():
+            raise InvalidGameStateError(
+                "An offer can only be made once the current round is complete."
+            )
+        self._current_offer = offer
+        self._status = GameStatus.OFFER_PENDING
+
+    def accept_offer(self) -> Money:
+        """Accept the pending offer, ending the game. Cannot be done twice."""
+        if self._status is not GameStatus.OFFER_PENDING or self._current_offer is None:
+            raise NoPendingOfferError("There is no pending offer to accept.")
+        self._status = GameStatus.ACCEPTED
+        return self._current_offer
+
+    def reject_offer(self) -> None:
+        """Reject the pending offer.
+
+        On a non-final round the game returns to ``IN_PROGRESS`` (ready to
+        advance); on the final round it moves to ``FINAL_SWAP_PENDING`` (the
+        endgame, handled in a later phase).
+        """
+        if self._status is not GameStatus.OFFER_PENDING or self._current_offer is None:
+            raise NoPendingOfferError("There is no pending offer to reject.")
+        self._current_offer = None
+        if self.has_next_round():
+            self._status = GameStatus.IN_PROGRESS
+        else:
+            self._status = GameStatus.FINAL_SWAP_PENDING
 
     # --- queries -------------------------------------------------------------
 
