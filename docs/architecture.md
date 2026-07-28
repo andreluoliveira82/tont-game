@@ -105,8 +105,7 @@ tont-game/
 │       │       ├── open_briefcase.py
 │       │       ├── process_banker_offer.py
 │       │       ├── decide_offer.py
-│       │       ├── swap_briefcase.py            # (Fase 5.5)
-│       │       ├── reveal_final_briefcase.py    # (Fase 5.5)
+│       │       ├── decide_final_swap.py         # (Fase 5.5)
 │       │       └── run_post_game_simulation.py  # (Fase 6)
 │       │
 │       ├── interface_adapters/       # (Fase 8)
@@ -238,7 +237,7 @@ Os casos de uso orquestram o domínio e coordenam `GameState` (estado) com
 Casos de uso por fase:
 
 - **Fase 5:** `StartGame`, `SelectInitialBriefcase`, `OpenBriefcase`, `ProcessBankerOffer`, `DecideOffer`.
-- **Fase 5.5:** `SwapBriefcase`, `RevealFinalBriefcase` (endgame).
+- **Fase 5.5:** `DecideFinalSwap` (endgame) — orquestra as primitivas de domínio `apply_final_swap` e `reveal_final_and_finish`; transição direta `FINAL_SWAP_PENDING → FINISHED`.
 - **Fase 6:** `RunPostGameSimulation`.
 
 ### Consistência entre estado e histórico
@@ -328,6 +327,8 @@ Situação corrente: maletas, rodada atual, oferta pendente, status do ciclo de 
 ### Histórico da partida (`GameRecord`)
 
 Registro estruturado, em memória, da narrativa completa: configuração inicial (id, data/hora, valores, distribuição, seed, maleta escolhida), histórico por rodada (maletas abertas, valores revelados, valores restantes no momento, oferta, percentual, decisão) e resultado. Ver `docs/decisions/0005-historico-da-partida-e-persistencia.md`.
+
+No endgame (Fase 5.5), a revelação das duas últimas maletas marca-as como `opened` no `GameState`, mas **não** as registra como aberturas de rodada em `GameRecord`; os fatos do encerramento ficam no `OfficialResult` (a outra maleta é derivável de `initial_distribution`). Ver `docs/decisions/0006-camada-application-e-historico.md`.
 
 ### Resultado oficial (`OfficialResult`)
 

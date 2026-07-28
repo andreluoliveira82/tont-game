@@ -62,11 +62,11 @@ Decisão do jogador de recusar a oferta e continuar a partida.
 
 ## Swap (Troca Final)
 
-Troca opcional da maleta do jogador pela última maleta fechada, disponível apenas no endgame, após a recusa da oferta da Rodada 9. A última maleta fechada é a única elegível.
+Troca opcional da maleta do jogador pela última maleta fechada, disponível apenas no endgame, após a recusa da oferta da Rodada 9. A última maleta fechada é a única elegível. É executada pela primitiva de domínio `apply_final_swap()` e orquestrada pelo caso de uso `DecideFinalSwap`.
 
 ## Endgame
 
-Fase final da partida, após a Rodada 9, quando restam exatamente duas maletas fechadas: a do jogador e a última maleta disponível. Inclui a oferta da Rodada 9 e a decisão de troca final.
+Fase final da partida, após a Rodada 9, quando restam exatamente duas maletas fechadas: a do jogador e a última maleta disponível. Inclui a oferta da Rodada 9 e a decisão de troca final. A conclusão ocorre por `reveal_final_and_finish()` (revela as duas últimas maletas), com transição direta a `FINISHED`.
 
 ## Game State
 

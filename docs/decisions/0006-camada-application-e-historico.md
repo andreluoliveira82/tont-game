@@ -18,11 +18,12 @@ e sem persistência no MVP. Complementa e refina o [ADR 0005](0005-historico-da-
 
 O fluxo normal (Application, `GameRecord`, `OfficialResult` pelo caminho Topa e
 recusas intermediárias) fica na **Fase 5**. O **endgame** (recusa da oferta da
-Rodada 9, decisão de troca, `SwapBriefcase`, `RevealFinalBriefcase`, resultado
+Rodada 9, decisão de troca, revelação das duas últimas maletas, resultado
 com/sem troca, conclusão) fica na nova **Fase 5.5**, respeitando o
-[ADR 0003](0003-troca-final.md). A recusa da oferta da Rodada 9 transita o estado
-para `FINAL_SWAP_PENDING` já na Fase 5, mas essa transição **não é consumida**
-nem tem lógica de endgame na Fase 5.
+[ADR 0003](0003-troca-final.md) — ver a subseção "Endgame (Fase 5.5)" adiante. A
+recusa da oferta da Rodada 9 transita o estado para `FINAL_SWAP_PENDING` já na
+Fase 5, mas essa transição **não é consumida** nem tem lógica de endgame na
+Fase 5.
 
 ### Camada Application
 
@@ -108,6 +109,28 @@ decisão, etc.). **Nada disso é implementado agora** (sem analytics, métricas,
 relatórios ou dashboard). A única obrigação atual é que o `GameRecord` preserve
 fatos ricos e bem estruturados para que essa análise seja possível no futuro sem
 reconstruir nem alterar o histórico das partidas.
+
+### Endgame (Fase 5.5)
+
+Detalhamento do desenho aprovado para consumir `FINAL_SWAP_PENDING` (implementado
+na Fase 5.5, commit `b26b11d`):
+
+- **Um único caso de uso** `DecideFinalSwap(swap: bool)` na Application, que
+  orquestra duas primitivas de domínio: `apply_final_swap()` (troca a maleta do
+  jogador pela única outra maleta fechada) e `reveal_final_and_finish()` (revela
+  as duas últimas maletas e conclui). Não há casos de uso `SwapBriefcase`/
+  `RevealFinalBriefcase` separados.
+- **Transição direta** `FINAL_SWAP_PENDING → FINISHED`; `GameStatus.FINAL_REVEAL`
+  permanece no enum, mas **não é utilizado** (sem estado intermediário).
+- A revelação marca as duas maletas como `opened` no `GameState`, mas **não** as
+  registra como aberturas de rodada em `GameRecord`.
+- **Nenhum registro histórico específico** do endgame (sem `FinalRevealRecord`/
+  `SwapRecord`): os fatos ficam em `OfficialResult` (`from_final_reveal`, com
+  `decision_round = None`) somados a `initial_distribution` e ao histórico
+  existente; a outra maleta revelada é derivável.
+- Consistência mantida: validar/executar no domínio primeiro, registrar o
+  `OfficialResult` (write-once) depois. Guardas do endgame reutilizam
+  `InvalidGameStateError`.
 
 ## Justificativa
 

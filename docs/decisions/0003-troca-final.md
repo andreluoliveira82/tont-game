@@ -32,7 +32,7 @@ A **última maleta fechada** é a única maleta elegível para troca.
 
 ## Impacto arquitetural
 
-- Deve existir um caso de uso de troca (`SwapBriefcase` ou equivalente) restrito ao endgame.
-- O domínio deve validar que a troca só ocorre no estágio final, com exatamente duas maletas fechadas, e após a recusa da oferta da Rodada 9.
-- A decisão de troca e a maleta resultante fazem parte do resultado oficial e do histórico da partida ([ADR 0005](0005-historico-da-partida-e-persistencia.md)).
+- O endgame é conduzido por um caso de uso único de Application, `DecideFinalSwap(swap: bool)`, que orquestra as primitivas de domínio `apply_final_swap()` e `reveal_final_and_finish()` (implementado na Fase 5.5, commit `b26b11d`; ver [ADR 0006](0006-camada-application-e-historico.md)).
+- O domínio valida que a troca/revelação só ocorre no estágio final (`FINAL_SWAP_PENDING`), com exatamente duas maletas fechadas, e após a recusa da oferta da Rodada 9; a conclusão transita direto para `FINISHED`.
+- A decisão de troca e a maleta resultante fazem parte do resultado oficial (`OfficialResult.from_final_reveal`, com `decision_round = None`) e o histórico existente ([ADR 0005](0005-historico-da-partida-e-persistencia.md)); **não** há registro histórico específico do endgame (a outra maleta é derivável de `initial_distribution`).
 - A simulação pós-jogo pode reproduzir uma decisão hipotética de troca sem afetar o resultado oficial ([ADR 0004](0004-simulacao-pos-jogo.md)).

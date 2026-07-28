@@ -130,19 +130,22 @@ resultado oficial. Ver `docs/decisions/0006-camada-application-e-historico.md`.
 
 # Fase 5.5 — Endgame
 
+**Status:** ✅ Concluída — commit `b26b11d` (endgame: `DecideFinalSwap`, primitivas de domínio e `OfficialResult.from_final_reveal`; 22 testes novos, 137 no total).
+
 Consumo do estado `FINAL_SWAP_PENDING` e conclusão da partida sem Topa,
-respeitando o ADR 0003 (troca final). Não iniciar antes da conclusão da Fase 5.
+respeitando o ADR 0003 (troca final) e o ADR 0006 (Application/histórico).
 
-- [ ] Transição/estado de endgame após recusa da oferta da Rodada 9 (duas maletas fechadas).
-- [ ] Decisão de troca (opcional): realizar ou não a troca.
-- [ ] `SwapBriefcase` (troca da maleta do jogador pela última maleta fechada).
-- [ ] Definição da maleta final do jogador.
-- [ ] `RevealFinalBriefcase` (revelação das duas últimas maletas).
-- [ ] `OfficialResult` sem troca (`FINAL_REVEAL_WITHOUT_SWAP`) e com troca (`FINAL_REVEAL_WITH_SWAP`).
-- [ ] Conclusão definitiva da partida (`FINISHED`).
-- [ ] Testes dos dois desfechos do endgame.
+- [x] Caso de uso único `DecideFinalSwap(swap: bool)` (Application), que orquestra as primitivas de domínio.
+- [x] Primitiva de domínio `apply_final_swap()` (troca a maleta do jogador pela única outra maleta fechada).
+- [x] Primitiva de domínio `reveal_final_and_finish()` (revela as duas últimas maletas e conclui a partida).
+- [x] Transição direta `FINAL_SWAP_PENDING → FINISHED` (sem usar `GameStatus.FINAL_REVEAL`).
+- [x] Revelação marca as duas maletas como `opened`, **sem** registrá-las como aberturas de rodada em `GameRecord`.
+- [x] `OfficialResult.from_final_reveal(...)` — sem troca (`FINAL_REVEAL_WITHOUT_SWAP`) e com troca (`FINAL_REVEAL_WITH_SWAP`); `decision_round = None`.
+- [x] **Sem** novo registro histórico (nem `FinalRevealRecord`/`SwapRecord`): os fatos do endgame ficam em `OfficialResult` + `initial_distribution` + histórico existente (a outra maleta é derivável).
+- [x] Consistência estado × histórico (ADR 0006): domínio primeiro, registro depois.
+- [x] Testes dos dois desfechos do endgame (com e sem troca) e de operações inválidas.
 
-**Critério de saída:** uma partida que recusa todas as ofertas conclui pelo endgame, com ou sem troca, produzindo `OfficialResult` imutável.
+**Critério de saída:** uma partida que recusa todas as ofertas conclui pelo endgame, com ou sem troca, produzindo `OfficialResult` imutável. ✅ Atendido.
 
 ---
 
