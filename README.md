@@ -31,7 +31,7 @@ Detalhes completos em [`docs/game-rules.md`](docs/game-rules.md) e nos ADRs.
 
 ## Estado do projeto
 
-Fases 0 a 3 concluídas: documentação e decisões, setup técnico, modelo de domínio e aleatoriedade/distribuição. Já existem o núcleo do domínio (maletas, estado da partida, 9 rodadas, invariantes) e a distribuição aleatória reproduzível. Ainda **não** há Banqueiro, casos de uso nem CLI. O desenvolvimento segue o [`roadmap.md`](docs/roadmap.md), uma fase por vez; o próximo passo é a Fase 4 (Banqueiro e ofertas).
+Fases 0 a 4 concluídas: documentação e decisões, setup técnico, modelo de domínio, aleatoriedade/distribuição e estratégia do Banqueiro. Já existem o núcleo do domínio (maletas, estado da partida, 9 rodadas, invariantes), a distribuição aleatória reproduzível e o cálculo das ofertas do Banqueiro. Ainda **não** há casos de uso, histórico da partida (`GameRecord`) nem CLI. O desenvolvimento segue o [`roadmap.md`](docs/roadmap.md), uma fase por vez; o próximo passo é a Fase 5 (casos de uso, `GameRecord` e resultado oficial).
 
 ## Requisitos
 

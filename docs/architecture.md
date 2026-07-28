@@ -84,7 +84,7 @@ tont-game/
 │       │   │   └── game_state.py
 │       │   ├── services/
 │       │   │   ├── distribution.py   # create_shuffled_game
-│       │   │   └── banker.py         # (Fase 4)
+│       │   │   └── banker.py         # BankerStrategy + DefaultBankerStrategy
 │       │   └── value_objects/
 │       │       ├── money.py
 │       │       ├── game_status.py
@@ -333,6 +333,15 @@ A implementação inicial utiliza uma estratégia baseada em:
 - percentual por rodada.
 
 A estratégia inicial depende apenas do estado atual e da rodada, não do histórico de ofertas. O componente deve permitir evolução futura para estratégias mais sofisticadas sem alterar as entidades centrais. Ver `docs/decisions/0002-estrategia-inicial-do-banqueiro.md`.
+
+### Implementação (Fase 4)
+
+- **Port `BankerStrategy`** (`domain/services/banker.py`): `Protocol` com o método `offer(remaining_values, round_number) -> Money`. Qualquer estratégia substituível o satisfaz.
+- **`DefaultBankerStrategy`** (mesmo módulo): política inicial `média(remaining_values) × percentual_da_rodada`, arredondada a centavos **apenas no final** (cálculo em `Decimal`, sem `float`). É **stateless** e **não** recebe/consulta o histórico de ofertas.
+- **Percentuais** em `DEFAULT_BANKER_PERCENTAGES: tuple[Decimal, ...]` (9 valores: 0.35–0.95), imutáveis e injetáveis no construtor (validados: quantidade, tipo `Decimal`, faixa `[0, 1]`); sem configuração externa nem persistência.
+- A estratégia recebe apenas `Sequence[Money]` + `round_number`; **não** conhece `GameState`, CLI nem infraestrutura. `remaining_values` inclui sempre o valor da maleta do jogador e exclui as maletas já abertas.
+- **Oscilação preservada:** nenhum piso crescente, mínimo baseado na oferta anterior ou correção de monotonicidade — a oferta pode subir ou cair conforme a composição dos valores restantes. Ver ADR 0002 e `game-rules.md` §7.
+- A validação de **estado da partida** para gerar uma oferta (rodada concluída, partida encerrada) é responsabilidade do futuro caso de uso `ProcessBankerOffer` (Fase 5), não da estratégia.
 
 ---
 

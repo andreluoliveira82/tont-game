@@ -38,19 +38,19 @@ Etapa do jogo durante a qual uma quantidade definida de maletas deve ser aberta.
 
 ## Banker
 
-Componente responsável pela política de cálculo das ofertas.
+Componente responsável pela política de cálculo das ofertas. É realizado diretamente por uma `Banker Strategy` (não há uma classe `Banker` separada).
 
 ## Banker Offer
 
-Valor monetário oferecido ao jogador pelo Banqueiro ao final de cada rodada.
+Valor monetário (`Money`) oferecido ao jogador pelo Banqueiro ao final de cada rodada. É calculado sobre `remaining_values` — todos os valores que ainda permanecem matematicamente em jogo, **incluindo** o valor da maleta protegida do jogador e **excluindo** os valores das maletas já abertas.
 
 ## Offer Percentage
 
-Percentual aplicado à média dos valores restantes para calcular uma oferta. Definido por rodada na política inicial da estratégia.
+Percentual aplicado à média dos valores restantes para calcular uma oferta. Definido por rodada na política inicial da estratégia (`DEFAULT_BANKER_PERCENTAGES`: 0.35–0.95 ao longo das 9 rodadas), representado como `Decimal` e injetável.
 
 ## Banker Strategy
 
-Política utilizada para determinar o valor da oferta do Banqueiro. Deve ser isolada e substituível. A estratégia inicial baseia-se apenas no estado atual e na rodada atual, sem depender do histórico de ofertas.
+Política que determina o valor da oferta do Banqueiro. É um **port** do domínio (`BankerStrategy`, `Protocol` com o método `offer(remaining_values, round_number)`); isolada e substituível. A implementação inicial é `DefaultBankerStrategy` — `média(remaining_values) × percentual_da_rodada`, arredondada a centavos apenas no final, **stateless** e sem depender do histórico de ofertas. A oferta pode subir ou cair entre rodadas conforme a composição dos valores restantes (sem monotonicidade artificial).
 
 ## Topa
 

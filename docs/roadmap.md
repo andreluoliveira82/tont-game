@@ -90,16 +90,18 @@ O LLM não deve avançar automaticamente para a próxima fase.
 
 # Fase 4 — Estratégia do Banqueiro
 
-- [ ] Criar estratégia de oferta isolada e substituível.
-- [ ] Calcular média dos valores restantes (`remaining_values`, incluindo a maleta do jogador).
-- [ ] Aplicar percentual por rodada (35, 40, 50, 60, 70, 80, 85, 90, 95).
-- [ ] Arredondar oferta para centavos.
-- [ ] Garantir que a estratégia dependa apenas do estado atual e da rodada (não do histórico de ofertas).
-- [ ] Testar ofertas nas 9 rodadas.
-- [ ] Testar oscilação (oferta pode subir ou cair) com valores conhecidos.
-- [ ] Testar estratégia com valores conhecidos (determinismo).
+**Status:** ✅ Concluída — commit `ecbb332` (port `BankerStrategy`, `DefaultBankerStrategy`, percentuais `DEFAULT_BANKER_PERCENTAGES`; 19 testes).
 
-**Critério de saída:** oferta do Banqueiro é determinística para um estado conhecido.
+- [x] Criar estratégia de oferta isolada e substituível (port `BankerStrategy` + `DefaultBankerStrategy`).
+- [x] Calcular média dos valores restantes (`remaining_values`, incluindo a maleta do jogador).
+- [x] Aplicar percentual por rodada (35, 40, 50, 60, 70, 80, 85, 90, 95).
+- [x] Arredondar oferta para centavos (apenas o resultado final, em `Decimal`).
+- [x] Garantir que a estratégia dependa apenas do estado atual e da rodada (não do histórico de ofertas).
+- [x] Testar ofertas nas 9 rodadas.
+- [x] Testar oscilação (oferta pode subir ou cair) com valores conhecidos.
+- [x] Testar estratégia com valores conhecidos (determinismo).
+
+**Critério de saída:** oferta do Banqueiro é determinística para um estado conhecido. ✅ Atendido.
 
 ---
 
