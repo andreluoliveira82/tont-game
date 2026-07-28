@@ -40,3 +40,13 @@ class NoMoreRoundsError(DomainError):
 
 class InvalidGameStateError(DomainError):
     """Raised when an operation is not allowed in the current game status."""
+
+
+class BankerStrategyError(DomainError):
+    """Raised when the banker strategy receives invalid input or configuration.
+
+    Covers invalid strategy inputs (unknown round, empty remaining values) and
+    invalid percentage configuration. It does NOT cover game-flow conditions
+    such as an unfinished round or a finished game — those are the concern of
+    the ProcessBankerOffer use case (Phase 5).
+    """
