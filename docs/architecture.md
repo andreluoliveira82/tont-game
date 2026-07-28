@@ -79,27 +79,35 @@ tont-game/
 │       │   ├── errors.py
 │       │   ├── official_values.py
 │       │   ├── randomness.py         # port RandomSource
+│       │   ├── clock.py              # port Clock (Fase 5)
+│       │   ├── identifiers.py        # port GameIdGenerator (Fase 5)
 │       │   ├── entities/
 │       │   │   ├── briefcase.py
 │       │   │   └── game_state.py
 │       │   ├── services/
 │       │   │   ├── distribution.py   # create_shuffled_game
 │       │   │   └── banker.py         # BankerStrategy + DefaultBankerStrategy
+│       │   ├── history/              # (Fase 5)
+│       │   │   ├── records.py        # BriefcaseOpeningRecord, BankerOfferRecord,
+│       │   │   │                     # OfficialResult, Decision, EndingType
+│       │   │   ├── round_record.py   # RoundRecord (append-only)
+│       │   │   └── game_record.py    # GameRecord (append-only)
 │       │   └── value_objects/
 │       │       ├── money.py
 │       │       ├── game_status.py
 │       │       └── round_schedule.py
 │       │
 │       ├── application/              # (Fase 5)
+│       │   ├── game_session.py       # GameSession (GameState + GameRecord)
 │       │   └── use_cases/
 │       │       ├── start_game.py
 │       │       ├── select_initial_briefcase.py
 │       │       ├── open_briefcase.py
 │       │       ├── process_banker_offer.py
 │       │       ├── decide_offer.py
-│       │       ├── swap_briefcase.py
-│       │       ├── reveal_final_briefcase.py
-│       │       └── run_post_game_simulation.py
+│       │       ├── swap_briefcase.py            # (Fase 5.5)
+│       │       ├── reveal_final_briefcase.py    # (Fase 5.5)
+│       │       └── run_post_game_simulation.py  # (Fase 6)
 │       │
 │       ├── interface_adapters/       # (Fase 8)
 │       │   └── cli/
@@ -108,8 +116,10 @@ tont-game/
 │       │       └── views.py
 │       │
 │       └── infrastructure/
-│           └── randomness/
-│               └── random_source.py  # DefaultRandomSource
+│           ├── randomness/
+│           │   └── random_source.py  # DefaultRandomSource
+│           ├── clock.py              # SystemClock (Fase 5)
+│           └── identifiers.py        # UuidGameIdGenerator (Fase 5)
 │
 ├── tests/
 │   ├── test_smoke.py
@@ -221,18 +231,25 @@ Representam, respectivamente, o resultado oficial e o resultado hipotético da s
 
 ## 7. Camada de aplicação
 
-Os casos de uso orquestram o domínio.
+Os casos de uso orquestram o domínio e coordenam `GameState` (estado) com
+`GameRecord` (histórico) por meio de uma composição `GameSession`
+(`{ game_state, game_record }`).
 
-Exemplos:
+Casos de uso por fase:
 
-- `StartGame`;
-- `SelectInitialBriefcase`;
-- `OpenBriefcase`;
-- `ProcessBankerOffer`;
-- `DecideOffer`;
-- `SwapBriefcase` (troca final do endgame);
-- `RevealFinalBriefcase`;
-- `RunPostGameSimulation`.
+- **Fase 5:** `StartGame`, `SelectInitialBriefcase`, `OpenBriefcase`, `ProcessBankerOffer`, `DecideOffer`.
+- **Fase 5.5:** `SwapBriefcase`, `RevealFinalBriefcase` (endgame).
+- **Fase 6:** `RunPostGameSimulation`.
+
+### Consistência entre estado e histórico
+
+Regra obrigatória dos casos de uso: **primeiro** a ação é validada/executada com
+sucesso no domínio (`GameState`, que é a autoridade sobre regras e invariantes);
+**só então** o fato correspondente é registrado no `GameRecord`. O `GameRecord`
+não valida operações nem duplica regras de negócio, e uma operação inválida
+(exceção do domínio) não deve gerar registro parcial ou "fato fantasma". Não há
+transação técnica/rollback no MVP; a consistência é responsabilidade explícita do
+desenho dos casos de uso. Ver `docs/decisions/0006-camada-application-e-historico.md`.
 
 Casos de uso não devem conter lógica de apresentação.
 
@@ -251,13 +268,18 @@ A CLI não deve conter regras de negócio. O Apresentador conduz o fluxo de inte
 
 ## 9. Infrastructure
 
-Contém detalhes externos ao domínio.
+Contém detalhes externos ao domínio, implementando **ports** definidos no domínio.
 
 Exemplo:
 
-- fonte de aleatoriedade;
+- fonte de aleatoriedade (`DefaultRandomSource` → port `RandomSource`);
+- relógio do sistema (`SystemClock` → port `Clock`, `datetime` UTC);
+- geração de identificadores (`UuidGameIdGenerator` → port `GameIdGenerator`, UUID);
 - integração futura com persistência;
 - integração futura com GUI ou outros adaptadores.
+
+Formatação e localização de datas/valores ficam nas camadas superiores
+(Interface Adapters/CLI), não na Infrastructure nem no domínio.
 
 ---
 
@@ -320,6 +342,18 @@ Objetivos da separação:
 - o histórico não deve ser confundido com o estado atual;
 - a simulação não deve ser confundida com a continuação oficial da partida;
 - o resultado hipotético nunca substitui o resultado oficial.
+
+### Analytics / visão administrativa (intenção futura — fora de escopo)
+
+Há a intenção futura de uma camada administrativa para os donos/operadores do
+jogo, capaz de analisar o histórico acumulado de várias partidas (comportamento
+das ofertas por rodada, taxas de aceitação, relação entre valor recebido e valor
+real da maleta, distribuição de resultados, padrões de decisão, etc.). **Nada
+disso faz parte do escopo atual** e não é implementado agora (sem analytics,
+métricas, relatórios ou dashboard). A única obrigação hoje é que o `GameRecord`
+preserve fatos ricos e bem estruturados, de modo que essa análise seja possível
+no futuro sem reconstruir nem alterar o histórico das partidas. Ver
+`docs/decisions/0006-camada-application-e-historico.md`.
 
 ---
 

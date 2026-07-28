@@ -104,7 +104,35 @@ Experiência opcional, executada após a aceitação de uma oferta, que revela o
 
 ## Game Record (Histórico da Partida)
 
-Registro estruturado, mantido em memória, que permite reconstruir a narrativa completa da partida: configuração inicial, histórico por rodada, resultado oficial e simulação pós-jogo (quando houver). Concebido para poder ser persistido futuramente sem acoplar o domínio a uma tecnologia específica.
+Registro estruturado, mantido em memória, que permite reconstruir a narrativa completa da partida: configuração inicial (id, `started_at`, distribuição concreta, seed, maleta escolhida), histórico por rodada, resultado oficial e simulação pós-jogo (quando houver). É **append-only** (só cresce; fatos passados não são sobrescritos) e concebido para poder ser persistido futuramente sem acoplar o domínio a uma tecnologia específica.
+
+## Game Session
+
+Composição operacional da partida na camada de aplicação: agrupa o `GameState` (estado atual) e o `GameRecord` (histórico). Os casos de uso operam sobre ela. O `GameRecord` nunca referencia o `GameState` mutável.
+
+## Round Record
+
+Registro dos fatos de uma rodada: maletas abertas (`BriefcaseOpeningRecord`), oferta do Banqueiro (`BankerOfferRecord`) e decisão do jogador (`Decision`).
+
+## Briefcase Opening Record
+
+Fato imutável de uma abertura: número da maleta e valor revelado.
+
+## Banker Offer Record
+
+Fato imutável de uma oferta: número da rodada, valor da oferta, **percentual utilizado** e valores restantes (`remaining_values`) considerados. Preserva o percentual por auditoria, independentemente de recalcular com a implementação atual.
+
+## Decision
+
+Decisão do jogador diante de uma oferta: `ACCEPT` (Topa) ou `REJECT` (Não Topa). Registrada no `RoundRecord` correspondente.
+
+## Clock
+
+Port do domínio que fornece o instante atual (`datetime` timezone-aware, em UTC). Implementação concreta na infraestrutura (`SystemClock`); substituível por um relógio determinístico em testes.
+
+## Game Id Generator
+
+Port do domínio que gera o identificador único da partida (UUID). Implementação concreta na infraestrutura (`UuidGameIdGenerator`); substituível em testes.
 
 ## Domain Rule
 

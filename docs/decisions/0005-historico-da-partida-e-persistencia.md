@@ -30,6 +30,10 @@ Formalizado após a Fase 3:
 
 Em resumo: distribuição concreta = registro histórico; seed = reprodutibilidade técnica opcional. Esta orientação será incorporada ao modelo de `GameRecord` na Fase 5 (não implementada na Fase 3).
 
+> O modelo concreto de `GameRecord`, `OfficialResult`, a separação estado ×
+> histórico e a estrutura da camada Application estão detalhados no
+> [ADR 0006](0006-camada-application-e-historico.md).
+
 ## Justificativa
 
 - Permite responder, hoje ou no futuro, a perguntas como: quais maletas foram abertas por rodada, quais valores eliminados, como as ofertas oscilaram, quais decisões foram tomadas, qual oferta foi aceita, qual era o valor real da maleta do jogador, qual teria sido o resultado se continuasse e se teria sido vantajoso trocar.

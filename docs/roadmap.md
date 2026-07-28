@@ -105,19 +105,43 @@ O LLM não deve avançar automaticamente para a próxima fase.
 
 ---
 
-# Fase 5 — Casos de uso
+# Fase 5 — Application, GameRecord e Resultado Oficial
 
-- [ ] `StartGame`.
+Escopo: camada Application (casos de uso do fluxo normal), histórico factual e
+resultado oficial. **Não** inclui o endgame (Swap/Reveal), que fica na Fase 5.5.
+Ver `docs/decisions/0006-camada-application-e-historico.md`.
+
+- [ ] Criar a camada `application/` e `GameSession` (composição `GameState` + `GameRecord`).
+- [ ] `StartGame` (cria estado embaralhado + `GameRecord`: id, `started_at`, distribuição concreta, seed).
 - [ ] `SelectInitialBriefcase`.
 - [ ] `OpenBriefcase`.
 - [ ] `ProcessBankerOffer`.
-- [ ] `DecideOffer`.
-- [ ] `SwapBriefcase` (troca final do endgame).
-- [ ] `RevealFinalBriefcase`.
-- [ ] Registro do histórico da partida (`GameRecord`) ao longo do fluxo.
-- [ ] Registro do resultado oficial imutável no encerramento.
+- [ ] `DecideOffer` (Topa: `OfficialResult` imutável; Não Topa intermediário: registra e avança).
+- [ ] Modelo de histórico no domínio: `GameRecord` (append-only), `RoundRecord`, `BriefcaseOpeningRecord`, `BankerOfferRecord` (com percentual), `Decision`, `OfficialResult` (write-once).
+- [ ] Ports `Clock` e `GameIdGenerator` (domínio) + implementações `SystemClock` e `UuidGameIdGenerator` (infra).
+- [ ] Evoluir `GameState`: oferta pendente, `accept_offer`, `reject_offer` e transições de status (`OFFER_PENDING`, `ACCEPTED`; recusa da R9 → `FINAL_SWAP_PENDING`, **sem consumir**).
+- [ ] Expor `percentage_for_round` no port `BankerStrategy` (auditoria do histórico).
+- [ ] Testes de domínio, aplicação, infraestrutura e integração (cenário Topa completo).
 
-**Critério de saída:** fluxo completo (9 rodadas + endgame) pode ser executado sem CLI, com histórico e resultado oficial registrados.
+**Critério de saída:** uma partida pode ser jogada sem CLI até o **Topa**, com `GameRecord` completo e `OfficialResult` imutável; recusas intermediárias são registradas; a recusa da R9 leva o estado a `FINAL_SWAP_PENDING` (endgame não implementado nesta fase).
+
+---
+
+# Fase 5.5 — Endgame
+
+Consumo do estado `FINAL_SWAP_PENDING` e conclusão da partida sem Topa,
+respeitando o ADR 0003 (troca final). Não iniciar antes da conclusão da Fase 5.
+
+- [ ] Transição/estado de endgame após recusa da oferta da Rodada 9 (duas maletas fechadas).
+- [ ] Decisão de troca (opcional): realizar ou não a troca.
+- [ ] `SwapBriefcase` (troca da maleta do jogador pela última maleta fechada).
+- [ ] Definição da maleta final do jogador.
+- [ ] `RevealFinalBriefcase` (revelação das duas últimas maletas).
+- [ ] `OfficialResult` sem troca (`FINAL_REVEAL_WITHOUT_SWAP`) e com troca (`FINAL_REVEAL_WITH_SWAP`).
+- [ ] Conclusão definitiva da partida (`FINISHED`).
+- [ ] Testes dos dois desfechos do endgame.
+
+**Critério de saída:** uma partida que recusa todas as ofertas conclui pelo endgame, com ou sem troca, produzindo `OfficialResult` imutável.
 
 ---
 
