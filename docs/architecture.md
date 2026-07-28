@@ -73,15 +73,24 @@ tont-game/
 │
 ├── src/
 │   └── tont_game/
+│       ├── __init__.py
+│       ├── __main__.py               # ponto de entrada (placeholder até a CLI)
 │       ├── domain/
+│       │   ├── errors.py
+│       │   ├── official_values.py
+│       │   ├── randomness.py         # port RandomSource
 │       │   ├── entities/
 │       │   │   ├── briefcase.py
 │       │   │   └── game_state.py
 │       │   ├── services/
-│       │   │   └── banker.py
+│       │   │   ├── distribution.py   # create_shuffled_game
+│       │   │   └── banker.py         # (Fase 4)
 │       │   └── value_objects/
+│       │       ├── money.py
+│       │       ├── game_status.py
+│       │       └── round_schedule.py
 │       │
-│       ├── application/
+│       ├── application/              # (Fase 5)
 │       │   └── use_cases/
 │       │       ├── start_game.py
 │       │       ├── select_initial_briefcase.py
@@ -92,7 +101,7 @@ tont-game/
 │       │       ├── reveal_final_briefcase.py
 │       │       └── run_post_game_simulation.py
 │       │
-│       ├── interface_adapters/
+│       ├── interface_adapters/       # (Fase 8)
 │       │   └── cli/
 │       │       ├── controller.py
 │       │       ├── presenters.py
@@ -100,11 +109,14 @@ tont-game/
 │       │
 │       └── infrastructure/
 │           └── randomness/
-│               └── random_source.py
+│               └── random_source.py  # DefaultRandomSource
 │
 ├── tests/
+│   ├── test_smoke.py
 │   ├── unit/
-│   └── integration/
+│   │   ├── domain/
+│   │   └── infrastructure/
+│   └── integration/                 # (Fase 7)
 │
 ├── .gitignore
 ├── llm-instructions.md
@@ -256,6 +268,14 @@ A lógica de domínio não deve depender diretamente de chamadas globais de alea
 Preferir injeção de uma fonte de aleatoriedade ou mecanismo equivalente.
 
 A simulação pós-jogo não realiza novo embaralhamento: reutiliza a distribuição da partida original.
+
+### Implementação (Fase 3)
+
+- **Port `RandomSource`** (`domain/randomness.py`): `Protocol` com o método `shuffle`. O domínio depende apenas dessa abstração e nunca importa `random`.
+- **Serviço de distribuição** (`domain/services/distribution.py`): `create_shuffled_game(random_source, values, schedule)` embaralha os valores oficiais via port e monta um `GameState` válido (maletas `1..26` na ordem embaralhada).
+- **Implementação concreta `DefaultRandomSource`** (`infrastructure/randomness/random_source.py`): backed por `random.Random`, com seed opcional. O nome é neutro para não sugerir `random.SystemRandom` (que não é semeável).
+
+Reprodutibilidade: mesma seed → mesma distribuição; sem seed → distribuição não determinística válida. A **distribuição concreta** produzida já reside no `GameState` (cada maleta com seu valor) — é o fato histórico daquela partida e a base sobre a qual a futura simulação pós-jogo opera, sem re-sortear. Ver ADR 0005.
 
 ---
 

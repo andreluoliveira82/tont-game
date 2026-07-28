@@ -12,6 +12,8 @@ O LLM não deve avançar automaticamente para a próxima fase.
 
 # Fase 0 — Documentação e decisões
 
+**Status:** ✅ Concluída — commit `185ab44` (consolidação das especificações e ADRs 0001–0005).
+
 - [x] Revisar `prd.md`.
 - [x] Revisar `game-rules.md`.
 - [x] Revisar `glossary.md`.
@@ -26,21 +28,23 @@ O LLM não deve avançar automaticamente para a próxima fase.
 
 # Fase 1 — Setup
 
-- [ ] Executar `uv init`.
-- [ ] Configurar Python 3.13+.
-- [ ] Configurar estrutura `src/`.
-- [ ] Configurar `pytest`.
-- [ ] Configurar `ruff`.
-- [ ] Configurar `taskipy`.
-- [ ] Criar `pyproject.toml`.
-- [ ] Criar `.gitignore`.
-- [ ] Criar `README.md`.
-- [ ] Configurar comandos:
-  - [ ] `task test`
-  - [ ] `task lint`
-  - [ ] `task format`
-  - [ ] `task run`
-  - [ ] `task check`
+**Status:** ✅ Concluída — commit `0e70da6` (ambiente `uv`, pacote instalável `src/tont_game`, `pytest`/`ruff`/`taskipy` e tarefas).
+
+- [x] Executar `uv init` (equivalente: `pyproject.toml` manual + `uv sync`).
+- [x] Configurar Python 3.13+.
+- [x] Configurar estrutura `src/`.
+- [x] Configurar `pytest`.
+- [x] Configurar `ruff`.
+- [x] Configurar `taskipy`.
+- [x] Criar `pyproject.toml`.
+- [x] Criar `.gitignore`.
+- [x] Criar `README.md`.
+- [x] Configurar comandos:
+  - [x] `task test`
+  - [x] `task lint`
+  - [x] `task format`
+  - [x] `task run`
+  - [x] `task check`
 
 **Critério de saída:** projeto instala, testa e valida sem funcionalidades do jogo.
 
@@ -48,14 +52,16 @@ O LLM não deve avançar automaticamente para a próxima fase.
 
 # Fase 2 — Modelo de domínio
 
-- [ ] Criar representação de dinheiro com precisão decimal.
-- [ ] Criar `Briefcase`.
-- [ ] Criar `GameState` (estado atual).
-- [ ] Criar `GameStatus` (incluindo estados de endgame e aceitação).
-- [ ] Criar representação das 9 rodadas e da sequência de aberturas.
-- [ ] Definir valores oficiais das 26 maletas.
-- [ ] Criar regras de invariantes (incluindo: duas maletas fechadas ao final da Rodada 9).
-- [ ] Criar testes unitários.
+**Status:** ✅ Concluída — commit `5c60f16` (`Money`, `Briefcase`, `GameState`, `GameStatus`, `RoundSchedule`, valores oficiais, invariantes; 43 testes).
+
+- [x] Criar representação de dinheiro com precisão decimal.
+- [x] Criar `Briefcase`.
+- [x] Criar `GameState` (estado atual).
+- [x] Criar `GameStatus` (incluindo estados de endgame e aceitação).
+- [x] Criar representação das 9 rodadas e da sequência de aberturas.
+- [x] Definir valores oficiais das 26 maletas.
+- [x] Criar regras de invariantes (incluindo: duas maletas fechadas ao final da Rodada 9).
+- [x] Criar testes unitários.
 
 **Critério de saída:** domínio representa corretamente uma partida inicial e a estrutura das 9 rodadas.
 
@@ -63,15 +69,22 @@ O LLM não deve avançar automaticamente para a próxima fase.
 
 # Fase 3 — Aleatoriedade
 
-- [ ] Criar fonte de aleatoriedade.
-- [ ] Permitir semente determinística.
-- [ ] Embaralhar valores.
-- [ ] Associar valores às maletas.
-- [ ] Registrar a seed na configuração inicial da partida quando utilizada.
-- [ ] Testar distribuição.
-- [ ] Testar reprodução com seed.
+**Status:** ✅ Concluída — commit `0d5bd32` (port `RandomSource`, serviço `create_shuffled_game`, `DefaultRandomSource`; 13 testes).
 
-**Critério de saída:** partidas podem ser aleatórias e reproduzíveis.
+- [x] Criar fonte de aleatoriedade (port `RandomSource` no domínio).
+- [x] Permitir semente determinística (`DefaultRandomSource(seed=...)`).
+- [x] Embaralhar valores (serviço `create_shuffled_game`).
+- [x] Associar valores às maletas (via `GameState.create`).
+- [ ] Registrar a seed na configuração inicial da partida quando utilizada. → **adiado para a Fase 5** (`GameRecord`); ver nota abaixo e ADR 0005.
+- [x] Testar distribuição.
+- [x] Testar reprodução com seed.
+
+> Nota: a seed já é exposta por `DefaultRandomSource.seed`. Seu registro na
+> configuração inicial da partida será feito no `GameRecord` (Fase 5). A
+> distribuição concreta é o registro histórico; a seed é complementar
+> (reprodutibilidade técnica). Ver ADR 0005.
+
+**Critério de saída:** partidas podem ser aleatórias e reproduzíveis. ✅ Atendido (distribuição via `DefaultRandomSource`, reprodutível por seed, domínio desacoplado).
 
 ---
 

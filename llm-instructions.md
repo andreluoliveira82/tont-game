@@ -213,3 +213,18 @@ Uma tarefa só deve ser considerada concluída quando:
 - formatação estiver correta;
 - documentação necessária estiver atualizada;
 - nenhuma regra de negócio tiver sido inventada ou alterada sem decisão explícita.
+
+---
+
+## 13. Documentação viva
+
+A documentação do projeto é viva e não é congelada após a Fase 0. Código, arquitetura, decisões e documentação devem permanecer coerentes entre si durante toda a evolução do projeto.
+
+Ao concluir cada fase:
+
+- verifique se a implementação exige atualização de algum documento existente e atualize apenas o que estiver desatualizado, inconsistente ou incompleto;
+- mantenha o `roadmap.md` sincronizado com o estado real (fases concluídas, com status e commit associado);
+- registre decisões arquiteturais ou de negócio relevantes em `docs/decisions/` (ADRs); não crie ADRs para detalhes triviais;
+- mantenha o glossário e a terminologia consistentes entre todos os documentos;
+- não altere regras de negócio silenciosamente para "combinar" com o código — se houver divergência, identifique a causa e, se exigir nova decisão de negócio, consulte o desenvolvedor;
+- revise a consistência entre código e documentação antes de considerar a fase concluída.

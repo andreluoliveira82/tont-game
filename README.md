@@ -31,8 +31,30 @@ Detalhes completos em [`docs/game-rules.md`](docs/game-rules.md) e nos ADRs.
 
 ## Estado do projeto
 
-Fase 0 (documentação e decisões) concluída. O desenvolvimento segue o [`roadmap.md`](docs/roadmap.md), uma fase por vez, começando pela Fase 1 (setup).
+Fases 0 a 3 concluídas: documentação e decisões, setup técnico, modelo de domínio e aleatoriedade/distribuição. Já existem o núcleo do domínio (maletas, estado da partida, 9 rodadas, invariantes) e a distribuição aleatória reproduzível. Ainda **não** há Banqueiro, casos de uso nem CLI. O desenvolvimento segue o [`roadmap.md`](docs/roadmap.md), uma fase por vez; o próximo passo é a Fase 4 (Banqueiro e ofertas).
+
+## Requisitos
+
+- Python 3.13+
+- [`uv`](https://docs.astral.sh/uv/)
+
+## Como configurar e validar
+
+```bash
+uv sync            # cria o ambiente e instala as dependências
+uv run task check  # format (--check) + lint + testes
+```
+
+Comandos disponíveis via `taskipy`:
+
+| Comando | Ação |
+|---|---|
+| `uv run task test` | executa os testes (`pytest`) |
+| `uv run task lint` | análise estática (`ruff check`) |
+| `uv run task format` | formatação (`ruff format`) |
+| `uv run task check` | `format --check` + `lint` + `test` |
+| `uv run task run` | executa o ponto de entrada (placeholder até a CLI) |
 
 ## Ferramentas
 
-`uv`, `ruff`, `pytest` e `taskipy`. Os comandos principais serão disponibilizados via `taskipy` a partir da Fase 1.
+`uv`, `ruff`, `pytest` e `taskipy`.

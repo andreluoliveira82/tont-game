@@ -124,4 +124,12 @@ Na CLI, o Apresentador conduz o fluxo de interação com o jogador (ofertas, dec
 
 ## Random Source
 
-Fonte de aleatoriedade utilizada para embaralhar os valores das maletas. Pode ser substituída por uma fonte determinística em testes. A simulação pós-jogo não realiza novo embaralhamento.
+Fonte de aleatoriedade utilizada para embaralhar os valores das maletas. É um **port** do domínio (`RandomSource`, `Protocol` com o método `shuffle`); pode ser substituída por uma fonte determinística em testes. A implementação concreta padrão é `DefaultRandomSource` (infraestrutura), backed por `random.Random` com seed opcional. A simulação pós-jogo não realiza novo embaralhamento.
+
+## Value Distribution
+
+Serviço de domínio (`create_shuffled_game`) que embaralha os valores oficiais por meio de um `RandomSource` e monta um `GameState` válido, numerando as maletas na ordem embaralhada.
+
+## Distribuição concreta
+
+Associação efetiva entre cada maleta e seu valor em uma partida específica, resultante da distribuição. Representa o fato histórico daquela execução e reside no próprio `GameState`. É a base sobre a qual a futura simulação pós-jogo opera (sem re-sortear). Difere da `seed`, que é apenas informação complementar de reprodutibilidade técnica.
