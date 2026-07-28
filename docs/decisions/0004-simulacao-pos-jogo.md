@@ -46,3 +46,32 @@ Diferença:                      R$ Z
 - O resultado oficial e o resultado da simulação são conceitos distintos e devem ser modelados separadamente.
 - A simulação registra: se foi executada, maletas reveladas, valor da maleta do jogador, decisão hipotética de troca (quando aplicável), resultado hipotético e a diferença em relação ao oficial.
 - A simulação é uma responsabilidade da aplicação/apresentação sobre o estado do domínio; o domínio não deve tratá-la como continuação da partida oficial.
+
+## Complemento (2026-07-28) — Escopo e forma da Fase 6
+
+Formalizado ao autorizar a Fase 6:
+
+- A simulação é uma **derivação pura e não-histórica** sobre um `GameRecord`
+  imutável já encerrado; produz um **`SimulationResult` separado**.
+- O `SimulationResult` **não** faz parte do `GameRecord`, **não** é o resultado
+  oficial, **não** é gravado no histórico e **não** é persistido. "A simulação
+  registra…" (acima) refere-se aos campos do próprio `SimulationResult`, não a
+  qualquer escrita no histórico oficial.
+- **Escopo da Fase 6 (MVP):** exclusivamente o cenário **`CONTINUE_HOLD`** — a
+  partir de uma partida encerrada por **Topa**, comparar o valor oficialmente
+  recebido (`amount_received`) com o valor hipotético de o jogador ter recusado a
+  oferta e segurado a própria maleta até o fim (`player_briefcase_value`).
+- **Fora do escopo da Fase 6:** simular a decisão final oposta em encerramentos
+  por endgame; aceitar hipoteticamente ofertas recusadas; troca hipotética em
+  Topa intermediário; recálculo de ofertas; re-sorteio. A ordem de abertura
+  hipotética **não** é inventada (o swap hipotético só seria considerado quando
+  determinístico pelos dados, e não é implementado neste MVP).
+- **Forma:** um serviço de domínio puro conduz a derivação; um caso de uso fino
+  `RunPostGameSimulation` (Application) o invoca. Sem novos ports, sem
+  infraestrutura, sem persistência. Ver [ADR 0006](0006-camada-application-e-historico.md).
+- **Implementação (Fase 6, commit `f6faba0`):** serviço de domínio
+  `simulate_continue_hold(game_record)` + VOs `SimulationScenario`
+  (`CONTINUE_HOLD`) e `SimulationResult` (frozen); caso de uso
+  `RunPostGameSimulation`. Pré-condição: `official_result` presente (senão
+  `InvalidGameStateError`). Diferença/comparação são deriváveis, não
+  armazenadas.

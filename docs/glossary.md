@@ -100,11 +100,19 @@ Resultado registrado imediatamente no encerramento oficial da partida. Contém o
 
 ## Post-Game Simulation (Simulação Pós-Jogo)
 
-Experiência opcional, executada após a aceitação de uma oferta, que revela o que teria acontecido se o jogador tivesse continuado. Usa a mesma distribuição de valores e o estado do momento da aceitação, sem gerar nova partida nem alterar o resultado oficial. Produz um resultado hipotético comparado ao oficial.
+Derivação pura e **não-histórica** sobre um `GameRecord` imutável encerrado por Topa, que revela o que teria acontecido se o jogador tivesse recusado a oferta e continuado. Não gera nova partida, não re-sorteia e não altera o resultado oficial. Um serviço de domínio conduz a derivação; o caso de uso fino `RunPostGameSimulation` o invoca. Produz um `SimulationResult` separado (ver abaixo). Escopo da Fase 6 (MVP): apenas o cenário `CONTINUE_HOLD`.
+
+## Simulation Scenario
+
+Tipo de cenário hipotético simulado. No MVP existe apenas `CONTINUE_HOLD`: o jogador teria recusado a oferta aceita e segurado a própria maleta até o encerramento.
+
+## Simulation Result
+
+Value Object imutável (`frozen`) que representa o resultado de uma simulação: `scenario`, `hypothetical_amount` (valor hipotético) e `official_amount` (valor oficialmente recebido). É **separado** do `OfficialResult`, **não** integra o `GameRecord`, **não** é o resultado oficial e **não** é persistido. Diferença absoluta e comparação são valores **derivados**, não campos armazenados.
 
 ## Game Record (Histórico da Partida)
 
-Registro estruturado, mantido em memória, que permite reconstruir a narrativa completa da partida: configuração inicial (id, `started_at`, distribuição concreta, seed, maleta escolhida), histórico por rodada, resultado oficial e simulação pós-jogo (quando houver). É **append-only** (só cresce; fatos passados não são sobrescritos) e concebido para poder ser persistido futuramente sem acoplar o domínio a uma tecnologia específica.
+Registro estruturado, mantido em memória, que permite reconstruir a narrativa completa da partida: configuração inicial (id, `started_at`, distribuição concreta, seed, maleta escolhida), histórico por rodada e resultado oficial. É **append-only** (só cresce; fatos passados não são sobrescritos) e concebido para poder ser persistido futuramente sem acoplar o domínio a uma tecnologia específica. O resultado da simulação pós-jogo (`SimulationResult`) **não** faz parte do `GameRecord`.
 
 ## Game Session
 

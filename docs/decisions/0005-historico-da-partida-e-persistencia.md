@@ -17,7 +17,7 @@ Desde o MVP, o projeto mantém **em memória**, de forma estruturada, o históri
 
 **Resultado oficial:** motivo do encerramento; oferta aceita (quando aplicável); valor oficial recebido; valor real da maleta do jogador; decisão final de troca (quando aplicável); valor final oficial.
 
-**Simulação pós-jogo (se realizada):** se foi executada; maletas reveladas; valor da maleta do jogador; decisão hipotética de troca (quando aplicável); resultado hipotético; comparação e diferença em relação ao oficial.
+**Simulação pós-jogo (se realizada):** se foi executada; maletas reveladas; valor da maleta do jogador; decisão hipotética de troca (quando aplicável); resultado hipotético; comparação e diferença em relação ao oficial. *(Superado — ver "Complemento (2026-07-28) — Simulação fora do `GameRecord`" ao final: o resultado da simulação não integra o `GameRecord`.)*
 
 **Persistência permanente NÃO faz parte do MVP.** O histórico existe apenas em memória durante a execução; não é necessário armazenar partidas após o encerramento do programa. Persistência futura (JSON, SQLite, banco de dados) poderá ser adicionada sem acoplar o domínio a uma tecnologia específica.
 
@@ -44,3 +44,24 @@ Em resumo: distribuição concreta = registro histórico; seed = reprodutibilida
 - Distinção conceitual obrigatória entre: **estado atual** da partida; **histórico** de eventos/resultados; **resultado oficial**; **simulação pós-jogo**. Esses conceitos devem permanecer separados, ainda que os nomes exatos das classes sejam livres.
 - O modelo de domínio e os casos de uso não devem impedir que um `GameRecord` completo seja persistido futuramente.
 - Não criar camada de persistência complexa por antecipação. Apenas garantir o desacoplamento entre domínio e tecnologia de persistência.
+
+## Complemento (2026-07-28) — Simulação fora do `GameRecord`
+
+Atualização posterior da decisão, à luz do [ADR 0004](0004-simulacao-pos-jogo.md)
+(complementado na Fase 6) e da decisão D3 aprovada para a Fase 6:
+
+- A redação anterior que listava "Simulação pós-jogo (se realizada)" como
+  conteúdo do `GameRecord` **não representa mais o desenho arquitetural
+  vigente** e fica **superada** por esta nota (o registro histórico original é
+  preservado acima).
+- O **`SimulationResult` é uma estrutura separada, efêmera, não-histórica e não
+  persistida**; **não integra** o `GameRecord`.
+- O `GameRecord` permanece **exclusivamente** o histórico oficial e imutável da
+  partida.
+- A simulação é uma **derivação pura** realizada sobre o `GameRecord`; sua
+  execução **não** altera o `GameRecord`, o `OfficialResult` ou qualquer outro
+  histórico.
+- Nenhum resultado de simulação é persistido nesta Fase 6.
+- A distinção conceitual entre estado atual, histórico, resultado oficial e
+  simulação pós-jogo (acima) **permanece válida** — apenas a simulação deixa de
+  ser modelada como conteúdo do `GameRecord`.

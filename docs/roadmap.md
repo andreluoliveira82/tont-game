@@ -151,16 +151,23 @@ respeitando o ADR 0003 (troca final) e o ADR 0006 (Application/histórico).
 
 # Fase 6 — Simulação pós-jogo
 
-- [ ] Implementar `RunPostGameSimulation`.
-- [ ] Reutilizar a distribuição da partida original (sem novo embaralhamento).
-- [ ] Partir do estado do momento da aceitação da oferta.
-- [ ] Revelar progressivamente as maletas restantes e a maleta do jogador.
-- [ ] Simular a decisão hipotética de troca quando o fluxo chegar a duas maletas.
-- [ ] Produzir resultado hipotético e comparação com o resultado oficial.
-- [ ] Garantir que o resultado oficial não seja alterado.
-- [ ] Testes cobrindo a separação entre resultado oficial e hipotético.
+**Status:** ✅ Concluída — commit `f6faba0` (simulação pós-jogo `CONTINUE_HOLD`: serviço de domínio puro + caso de uso fino; 12 testes novos, 149 no total).
 
-**Critério de saída:** simulação pós-jogo funcional, separada da partida oficial, sem alterar o resultado oficial.
+Escopo (MVP): derivação pura sobre um `GameRecord` encerrado por **Topa**,
+produzindo um `SimulationResult` **separado** (não-histórico). Único cenário:
+**`CONTINUE_HOLD`**. Ver `docs/decisions/0004-simulacao-pos-jogo.md`.
+
+- [x] Serviço de domínio puro de simulação (`simulate_continue_hold`, deriva do `GameRecord` imutável; sem ports/infra/estado mutável).
+- [x] Caso de uso fino `RunPostGameSimulation` (Application) que delega ao serviço de domínio.
+- [x] `SimulationScenario` (apenas `CONTINUE_HOLD`) e `SimulationResult` (frozen: `scenario`, `hypothetical_amount`, `official_amount`).
+- [x] Cenário `CONTINUE_HOLD`: `hypothetical_amount = official_result.player_briefcase_value`; `official_amount = official_result.amount_received`.
+- [x] Exigir `official_result` presente; caso contrário, `InvalidGameStateError`.
+- [x] Garantir que a simulação **não** altera `GameRecord`/`OfficialResult`/`GameState` e **não** é persistida.
+- [x] Testes: cenário Topa, determinismo, imutabilidade (oficial/histórico), pré-condição, e delegação do caso de uso.
+
+**Não** nesta fase: decisão de endgame oposta; aceitar ofertas recusadas; troca hipotética em Topa intermediário; recálculo de ofertas; re-sorteio; persistência. (A diferença/comparação são deriváveis, não campos armazenados.)
+
+**Critério de saída:** simulação pós-jogo `CONTINUE_HOLD` funcional, separada da partida oficial, determinística e sem alterar o resultado oficial. ✅ Atendido.
 
 ---
 

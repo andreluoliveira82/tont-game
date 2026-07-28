@@ -92,6 +92,8 @@ tont-game/
 │       │   │   │                     # OfficialResult, Decision, EndingType
 │       │   │   ├── round_record.py   # RoundRecord (imutável/frozen)
 │       │   │   └── game_record.py    # GameRecord (append-only)
+│       │   ├── simulation/           # (Fase 6)
+│       │   │   └── post_game_simulation.py  # servico + SimulationResult/Scenario
 │       │   └── value_objects/
 │       │       ├── money.py
 │       │       ├── game_status.py
@@ -238,7 +240,7 @@ Casos de uso por fase:
 
 - **Fase 5:** `StartGame`, `SelectInitialBriefcase`, `OpenBriefcase`, `ProcessBankerOffer`, `DecideOffer`.
 - **Fase 5.5:** `DecideFinalSwap` (endgame) — orquestra as primitivas de domínio `apply_final_swap` e `reveal_final_and_finish`; transição direta `FINAL_SWAP_PENDING → FINISHED`.
-- **Fase 6:** `RunPostGameSimulation`.
+- **Fase 6:** `RunPostGameSimulation` — caso de uso fino que delega a um serviço de domínio de simulação (derivação pura sobre o `GameRecord`).
 
 ### Consistência entre estado e histórico
 
@@ -337,6 +339,8 @@ Registrado imediatamente no encerramento e imutável: motivo do encerramento, of
 ### Simulação pós-jogo (`SimulationResult`)
 
 Resultado hipotético produzido após a aceitação de uma oferta, sem alterar o estado nem o resultado oficial. Ver `docs/decisions/0004-simulacao-pos-jogo.md`.
+
+Na Fase 6, a simulação é uma **derivação pura** sobre um `GameRecord` imutável já encerrado por Topa: um **serviço de domínio** conduz a derivação e um **caso de uso fino `RunPostGameSimulation`** (Application) o invoca. O resultado é um `SimulationResult` (VO frozen) **separado**, que **não** integra o `GameRecord`, **não** é o resultado oficial e **não** é persistido. Escopo MVP: cenário `CONTINUE_HOLD` (`hypothetical_amount = player_briefcase_value`; `official_amount = amount_received`). Sem novos ports, sem infraestrutura.
 
 Objetivos da separação:
 
