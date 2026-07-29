@@ -152,6 +152,9 @@ class CliController:
                 original_number, original_value, other_number, other_value, swap
             )
         )
+        got = other_value if swap else original_value
+        gave_up = original_value if swap else other_value
+        self._narrate_ending(got, gave_up, session)
 
     def _present_topa_result(self, session: GameSession) -> None:
         result = session.game_record.official_result

@@ -30,6 +30,24 @@ def topa_round_one_inputs(simulate_answer: str, *, decision: str = "t") -> list[
     return ["10", "1", "2", "3", "4", "5", "6", decision, simulate_answer]
 
 
+def endgame_inputs(player: int, leave: int, swap_answer: str) -> list[str]:
+    """Reject every offer up to the endgame, leaving briefcase ``leave`` closed.
+
+    With the identity shuffle, briefcase ``i`` holds the ``i``-th official value,
+    so ``player`` and ``leave`` fully determine the two final briefcase values.
+    """
+    to_open = [n for n in range(1, 27) if n not in (player, leave)]
+    inputs = [str(player)]
+    index = 0
+    for quota in QUOTAS:
+        for _ in range(quota):
+            inputs.append(str(to_open[index]))
+            index += 1
+        inputs.append("n")  # reject the offer
+    inputs.append(swap_answer)
+    return inputs
+
+
 def test_topa_flow_presents_official_result(run_cli) -> None:
     console = run_cli(topa_round_one_inputs("n"))
     assert "Bem-vindo" in console.text
@@ -172,6 +190,47 @@ def test_topa_close_result_stays_silent(run_cli) -> None:
 def test_topa_narration_is_deterministic(run_cli) -> None:
     first = run_cli(topa_round_one_inputs("n")).text
     second = run_cli(topa_round_one_inputs("n")).text
+    assert first == second
+
+
+def test_endgame_swap_triumph_narration_follows_the_factual_line(run_cli) -> None:
+    # Swap R$ 0,50 (briefcase 1) for R$ 100,00 (briefcase 8): took much more.
+    console = run_cli(endgame_inputs(player=1, leave=8, swap_answer="s"))
+    line = narration.messages(EndingMoment.TRIUMPH)[0]
+    assert line in console.text
+    assert console.text.index("trocou a maleta") < console.text.index(line)
+
+
+def test_endgame_swap_regret_narration_is_shown(run_cli) -> None:
+    # Swap R$ 1.000.000,00 (briefcase 24) for R$ 100,00 (briefcase 8): took far less.
+    console = run_cli(endgame_inputs(player=24, leave=8, swap_answer="s"))
+    assert narration.messages(EndingMoment.REGRET)[0] in console.text
+
+
+def test_endgame_no_swap_peak_narration_is_shown(run_cli) -> None:
+    # Keep briefcase 26 (R$ 2.000.000,00): the biggest prize on the table.
+    console = run_cli(endgame_inputs(player=26, leave=1, swap_answer="n"))
+    assert narration.messages(EndingMoment.PEAK)[0] in console.text
+
+
+def test_endgame_no_swap_floor_narration_is_shown(run_cli) -> None:
+    # Keep briefcase 1 (R$ 0,50): the smallest prize on the table.
+    console = run_cli(endgame_inputs(player=1, leave=26, swap_answer="n"))
+    assert narration.messages(EndingMoment.FLOOR)[0] in console.text
+
+
+def test_endgame_close_result_stays_silent(run_cli) -> None:
+    # Keep R$ 75,00 (briefcase 7) with R$ 100,00 (briefcase 8) left: too close.
+    console = run_cli(endgame_inputs(player=7, leave=8, swap_answer="n"))
+    every_message = [
+        text for moment in EndingMoment for text in narration.messages(moment)
+    ]
+    assert not any(text in console.text for text in every_message)
+
+
+def test_endgame_narration_is_deterministic(run_cli) -> None:
+    first = run_cli(endgame_inputs(player=1, leave=8, swap_answer="s")).text
+    second = run_cli(endgame_inputs(player=1, leave=8, swap_answer="s")).text
     assert first == second
 
 
