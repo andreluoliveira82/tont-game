@@ -74,7 +74,7 @@ tont-game/
 ├── src/
 │   └── tont_game/
 │       ├── __init__.py
-│       ├── __main__.py               # ponto de entrada (placeholder até a CLI)
+│       ├── __main__.py               # composition root da CLI (seed opcional)
 │       ├── domain/
 │       │   ├── errors.py
 │       │   ├── official_values.py
@@ -112,9 +112,9 @@ tont-game/
 │       │
 │       ├── interface_adapters/       # (Fase 8)
 │       │   └── cli/
-│       │       ├── controller.py
-│       │       ├── presenters.py
-│       │       └── views.py
+│       │       ├── controller.py     # CliController (game loop)
+│       │       ├── presenters.py     # formatação PT-BR (format_money)
+│       │       └── views.py          # Console + TerminalConsole
 │       │
 │       └── infrastructure/
 │           ├── randomness/
@@ -264,6 +264,16 @@ Responsável por converter:
 - resultados da aplicação em dados apropriados para apresentação.
 
 A CLI não deve conter regras de negócio. O Apresentador conduz o fluxo de interação (ofertas, decisões, oferta de simulação pós-jogo), mas as regras permanecem no domínio/aplicação.
+
+### Implementação (Fase 8)
+
+`interface_adapters/cli/`:
+
+- **`CliController`** (`controller.py`): o *game loop*. Orquestra os casos de uso existentes (`StartGame`, `SelectInitialBriefcase`, `OpenBriefcase`, `ProcessBankerOffer`, `DecideOffer`, `DecideFinalSwap`, `RunPostGameSimulation`), lê entradas, captura `DomainError` para reprompt e formata a saída via presenters. **Não** contém regra de negócio; depende de **ports** (`Clock`, `GameIdGenerator`, `RandomSource`, `BankerStrategy`), não de infraestrutura concreta.
+- **`presenters`** (`presenters.py`): funções **puras** que convertem objetos de domínio em texto PT-BR (inclui `format_money` → `R$ 1.000,00`, sem `locale`); sem I/O e sem regra.
+- **`views`** (`views.py`): a fronteira de I/O — `Console` (`Protocol`: `write`/`read_line`) e a implementação concreta `TerminalConsole` (`print`/`input`). Substituível por um dublê em testes.
+
+O **composition root** é o `__main__.py`: monta a infraestrutura concreta (`DefaultRandomSource`, `SystemClock`, `UuidGameIdGenerator`), a estratégia e o `CliController`, e roda a partida (seed opcional via argumento). Assim, a infraestrutura concreta fica restrita ao entry point; o domínio e a aplicação permanecem sem `print`/`input`, preservando a direção `Infrastructure → Interface Adapters → Application → Domain`.
 
 ---
 

@@ -199,22 +199,28 @@ Cenários completos (via casos de uso reais, sem CLI):
 
 # Fase 8 — Interface CLI
 
-- [ ] Criar controller.
-- [ ] Criar views.
-- [ ] Criar presenters (Apresentador).
-- [ ] Exibir maleta do jogador.
-- [ ] Exibir valores restantes.
-- [ ] Exibir valores eliminados.
-- [ ] Exibir rodada atual.
-- [ ] Exibir oferta.
-- [ ] Receber Topa/Não Topa.
-- [ ] Conduzir a troca final no endgame.
-- [ ] Oferecer e conduzir a simulação pós-jogo.
-- [ ] Apresentar comparação entre resultado oficial e hipotético.
-- [ ] Implementar tratamento de entradas inválidas.
-- [ ] Implementar game loop.
+**Status:** ✅ Concluída — commit `a28cbd6` (camada `interface_adapters/cli`: `presenters`, `views` `Console`/`TerminalConsole`, `CliController`; `__main__` como composition root; 21 testes novos, 180 no total).
 
-**Critério de saída:** partida completa jogável pelo terminal, com endgame e simulação pós-jogo.
+Camada `interface_adapters/cli` que orquestra os casos de uso existentes, sem
+regra de negócio; interface em **PT-BR**; formatação monetária `R$ 1.000,00`.
+
+- [x] Criar controller (`CliController`).
+- [x] Criar views (`Console`/`TerminalConsole`).
+- [x] Criar presenters (Apresentador).
+- [x] Exibir maleta do jogador.
+- [x] Exibir valores restantes.
+- [x] Exibir valores eliminados.
+- [x] Exibir rodada atual.
+- [x] Exibir oferta.
+- [x] Receber Topa/Não Topa.
+- [x] Conduzir a troca final no endgame.
+- [x] Oferecer e conduzir a simulação pós-jogo (após Topa).
+- [x] Apresentar comparação entre resultado oficial e hipotético.
+- [x] Implementar tratamento de entradas inválidas (reprompt).
+- [x] Implementar game loop.
+- [x] Seed opcional/reprodutibilidade via `__main__` (`python -m tont_game <seed>`).
+
+**Critério de saída:** partida completa jogável pelo terminal, com endgame e simulação pós-jogo. ✅ Atendido.
 
 ---
 

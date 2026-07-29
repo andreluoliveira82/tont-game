@@ -31,9 +31,9 @@ Detalhes completos em [`docs/game-rules.md`](docs/game-rules.md) e nos ADRs.
 
 ## Estado do projeto
 
-Fases 0 a 7 concluídas: documentação e decisões, setup técnico, modelo de domínio, aleatoriedade/distribuição, estratégia do Banqueiro, a camada de aplicação com histórico da partida, o endgame, a simulação pós-jogo e a suíte de testes de integração. Já existem o núcleo do domínio (maletas, estado da partida, 9 rodadas, invariantes), a distribuição aleatória reproduzível, o cálculo das ofertas do Banqueiro, os casos de uso do fluxo normal (`StartGame`, `SelectInitialBriefcase`, `OpenBriefcase`, `ProcessBankerOffer`, `DecideOffer`), o histórico factual (`GameRecord`), o resultado oficial imutável (`OfficialResult`), o endgame (`DecideFinalSwap`, com e sem troca) e a simulação pós-jogo (`RunPostGameSimulation`, cenário `CONTINUE_HOLD`). Uma partida pode ser jogada (sem CLI) do início ao **encerramento oficial** — por **Topa** ou pelo **endgame** após recusar todas as ofertas. A simulação pós-jogo é uma derivação pura sobre o `GameRecord` encerrado, produzindo um `SimulationResult` **separado** (não-histórico, não persistido).
+Fases 0 a 8 concluídas: documentação e decisões, setup técnico, modelo de domínio, aleatoriedade/distribuição, estratégia do Banqueiro, a camada de aplicação com histórico da partida, o endgame, a simulação pós-jogo, a suíte de testes de integração e a **interface CLI**. Já existem o núcleo do domínio (maletas, estado da partida, 9 rodadas, invariantes), a distribuição aleatória reproduzível, o cálculo das ofertas do Banqueiro, os casos de uso do fluxo normal (`StartGame`, `SelectInitialBriefcase`, `OpenBriefcase`, `ProcessBankerOffer`, `DecideOffer`), o histórico factual (`GameRecord`), o resultado oficial imutável (`OfficialResult`), o endgame (`DecideFinalSwap`, com e sem troca) e a simulação pós-jogo (`RunPostGameSimulation`, cenário `CONTINUE_HOLD`).
 
-A **Fase 7** adicionou uma suíte de **testes de integração** (via casos de uso reais, sem CLI) que protege o fluxo principal ponta a ponta — Topa completo, Topa → simulação pós-jogo, verificação do histórico completo, oscilação das ofertas, fluxo até a Rodada 9, endgame com e sem troca e operações inválidas — **sem alterar o código de produção**. O projeto tem **159 testes passando**. Ainda **não** há analytics, persistência nem CLI. O desenvolvimento segue o [`roadmap.md`](docs/roadmap.md), uma fase por vez; o próximo passo é a **Fase 8 — Interface CLI** (ainda não iniciada).
+A **Fase 8** adicionou uma **interface de linha de comando** (`interface_adapters/cli`: `CliController`, `presenters`, `views`) que orquestra os casos de uso existentes, sem regra de negócio. A CLI: está em **PT-BR**; permite jogar a **partida completa** pelo terminal (seleção da maleta, rodadas, aberturas, ofertas, Topa/Não Topa); conduz o **endgame** com **troca final**; oferece a **simulação pós-jogo após um Topa** e apresenta a **comparação oficial × hipotético**; **trata entradas inválidas** com reprompt; usa formatação monetária brasileira (`R$ 1.000,00`); e aceita uma **seed opcional** para partidas reproduzíveis. O projeto tem **180 testes passando**. Ainda **não** há analytics nem persistência. O desenvolvimento segue o [`roadmap.md`](docs/roadmap.md), uma fase por vez; o próximo passo é a **Fase 9 — Refinamento** (ainda não iniciada).
 
 ## Requisitos
 
@@ -55,7 +55,16 @@ Comandos disponíveis via `taskipy`:
 | `uv run task lint` | análise estática (`ruff check`) |
 | `uv run task format` | formatação (`ruff format`) |
 | `uv run task check` | `format --check` + `lint` + `test` |
-| `uv run task run` | executa o ponto de entrada (placeholder até a CLI) |
+| `uv run task run` | inicia a CLI do jogo (`python -m tont_game`) |
+
+## Como jogar
+
+```bash
+uv run python -m tont_game        # partida aleatória
+uv run python -m tont_game 42     # partida reproduzível (seed 42)
+```
+
+A interface é em Português do Brasil: escolha a maleta inicial, abra maletas a cada rodada, decida **Topa/Não Topa** a cada oferta e, ao final, conduza a troca do endgame ou (após um Topa) a simulação pós-jogo.
 
 ## Ferramentas
 

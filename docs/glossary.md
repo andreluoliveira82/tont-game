@@ -168,11 +168,19 @@ Operação da aplicação que representa uma ação relevante do usuário ou do 
 
 ## CLI
 
-Interface de linha de comando utilizada como primeira interface do projeto.
+Interface de linha de comando (primeira interface do projeto), implementada em `interface_adapters/cli`. Orquestra os casos de uso existentes, em PT-BR, sem regra de negócio. Iniciada por `python -m tont_game` (seed opcional).
+
+## CLI Controller
+
+`CliController` (`interface_adapters/cli/controller.py`): conduz o *game loop* — lê entradas via `Console`, delega cada ação a um caso de uso, captura erros de domínio para reprompt e formata a saída via presenters. Não contém regra de negócio; depende de ports, não de infraestrutura concreta.
 
 ## Presenter / Apresentador
 
-Na CLI, o Apresentador conduz o fluxo de interação com o jogador (ofertas, decisões, oferta de simulação pós-jogo). É responsabilidade de apresentação, não do domínio.
+Funções puras (`interface_adapters/cli/presenters.py`) que convertem objetos de domínio em texto PT-BR para exibição (inclui `format_money` → `R$ 1.000,00`). Sem I/O e sem regra de negócio. A condução do fluxo de interação é do `CliController`.
+
+## Console
+
+Fronteira de I/O da CLI: um `Protocol` (`write`/`read_line`) do qual o controller depende. A implementação concreta `TerminalConsole` usa `print`/`input`; um dublê a substitui nos testes.
 
 ## Random Source
 
