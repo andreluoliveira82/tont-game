@@ -417,6 +417,32 @@ implementação decorrente pertence a uma fase futura, aprovada explicitamente.
 
 ---
 
+# Fase 10.5 — Refinamento narrativo e celebração da CLI
+
+**Status:** ✅ Concluída — implementada em quatro incrementos (testes da simulação; módulo de narração puro; fiação no Topa; fiação no endgame) e este commit documental.
+
+Fase de refinamento **exclusivo da apresentação da CLI**, a partir de uma decisão
+de Game Design/UX congelada. Acrescenta uma **narração de encerramento**: após a
+linha factual do resultado, uma frase emocional opcional, escolhida de forma
+determinística sob o `RandomSource` já existente. **Sem** alterar regras, domínio,
+aplicação, infraestrutura ou a simulação `CONTINUE_HOLD`; **sem** cores,
+animações, áudio ou GUI.
+
+Principais entregas:
+
+- **Módulo puro `interface_adapters/cli/narration.py`:** quatro momentos de encerramento — `PEAK` (APOGEU), `FLOOR` (FUNDO), `TRIUMPH` (VITÓRIA), `REGRET` (ARREPENDIMENTO) — classificados por `moment_for(got, gave_up, max_value, min_value)` (precedência PEAK > FLOOR > TRIUMPH > REGRET; régua "muito mais" = pelo menos o dobro; silêncio caso contrário) e um banco estático de mensagens em PT-BR.
+- **Informação primeiro:** a linha factual permanece idêntica; a narração vem logo depois. Quando nenhum momento se destaca, o silêncio é intencional.
+- **Fiação no fluxo Topa** e **no endgame** (com e sem troca), reutilizando um único helper de apresentação no controller; seleção de variante via `RandomSource` (determinística sob seed).
+- **Testes de regressão da simulação:** cobertos os dois vereditos de `simulation_comparison` que faltavam ("Você fez bem em aceitar a oferta." e "Daria no mesmo.").
+
+**Situação da simulação pós-Topa:** permanece **inalterada** — a simulação vigente é `CONTINUE_HOLD` (derivação pura; ADR 0004 e seu Complemento). A **simulação progressiva/retrospectiva** (reprodução das rodadas hipotéticas, revelação progressiva, troca hipotética) permanece **backlog não priorizado** — evolução futura **não aprovada** para implementação.
+
+**Escopo estrito (o que NÃO mudou):** Domain, Application, Infrastructure, `presenters`, regras do jogo, fórmula do Banqueiro e o comportamento de `CONTINUE_HOLD`. Nenhuma dependência externa; nenhuma cor/animação/áudio/GUI.
+
+**Critério de saída:** encerramentos da CLI mais expressivos, com a informação factual preservada, seleção determinística e testável, sem tocar regras ou arquitetura. ✅ Atendido.
+
+---
+
 ## Definição de pronto
 
 Uma fase está concluída quando:
