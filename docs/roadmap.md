@@ -257,7 +257,7 @@ Principais entregas:
 
 # Fase 10 — Preparação para evolução (avaliação e decisão)
 
-**Status:** ⏳ Não iniciada.
+**Status:** ✅ Concluída — fase de avaliação/decisão (sem implementação de produto). Nenhum código alterado; nenhum ADR criado.
 
 > **Natureza da fase:** esta é uma fase de **avaliação, investigação e decisão
 > arquitetural/produto**. Ela **não implementa funcionalidades de produto**. Seu
@@ -265,6 +265,55 @@ Principais entregas:
 > sentido, quais devem ser adiadas ou descartadas, e quais decisões precisam ser
 > registradas **antes** de qualquer implementação futura. Nenhum tema abaixo deve
 > ser convertido automaticamente em requisito de implementação.
+
+## Conclusão (registro do encerramento)
+
+A Fase 10 foi executada como avaliação e decisão. **Conclusão central: a baseline
+atual (Fases 0–9) está estável e é o estado vigente do projeto; nenhuma
+implementação adicional está aprovada neste momento.** As Fases 0–9 permanecem
+concluídas. A avaliação confirmou que a arquitetura mantém os pontos de extensão
+abertos para evoluções futuras, mas nenhum tema tem hoje um driver real que
+justifique implementação.
+
+**Decisões por tema avaliado:**
+
+| Tema | Decisão |
+|---|---|
+| Persistência de resultados concluídos | **Adiar** (sem driver imediato; `GameRecord` já é serializável). |
+| Histórico entre execuções | **Adiar** — dependente de persistência (tema anterior). |
+| Múltiplas interfaces | **Capacidade arquitetural já validada** pela CLI; **nenhuma ação necessária**. |
+| GUI | **Não implementar agora.** |
+| Configuração das regras/parâmetros | **Investigar somente quando surgir uma variante concreta** (valores/sequência/percentuais já são injetáveis no código). |
+| Estratégias adicionais do Banqueiro | **Não implementar agora** (o port `BankerStrategy` já é suficiente; fórmula preservada). |
+
+**Também descartado por enquanto (sem driver):**
+
+- **Save/resume de partida em andamento** — descartado por enquanto (custo/risco de serializar estado mutável, sem necessidade).
+- **Configuração estrutural das regras** (quantidade de maletas, sequência estrutural de rodadas) — descartada por enquanto (tocaria invariantes; sem necessidade).
+
+**Direção futura registrada apenas como proposta (não é decisão vigente):** a
+persistência, quando/se ocorrer, poderia usar uma **porta de saída + arquivo JSON
+(não banco de dados)**, gravando a **distribuição concreta** (não só a seed).
+Isso é **direção potencial condicionada a um driver real**, **não** uma decisão
+arquitetural adotada — por isso **nenhum ADR foi criado** nesta fase.
+
+**Propostas de fases futuras — APENAS PROPOSTAS, NÃO APROVADAS:**
+
+- **Fase 11 (proposta, não aprovada):** persistência de resultados concluídos.
+- **Fase 12 (proposta, não aprovada):** histórico entre execuções (depende da 11).
+- **Fase 13 (proposta, não aprovada):** superfície de configuração (expor parâmetros já injetáveis).
+
+Estas fases **não estão autorizadas para implementação automática**. Cada uma
+exige aprovação explícita futura antes de qualquer código.
+
+**Backlog não priorizado** (sem fase associada, sem aprovação): GUI, novas
+estratégias do Banqueiro, reconfiguração estrutural das regras e analytics/visão
+administrativa.
+
+> **Estado vigente do projeto:** baseline estável (Fases 0–9), com a CLI como
+> interface oficial. A conclusão da Fase 10 é deliberadamente um **ponto de
+> parada estável**, e **não** uma autorização para iniciar automaticamente a
+> Fase 11 ou qualquer implementação.
 
 ## Objetivo
 
@@ -300,14 +349,16 @@ guie as fases de implementação seguintes.
 ## Temas a avaliar
 
 (Preservados do planejamento original; podem ser reorganizados, mas nenhum é, por
-si só, um requisito de implementação.)
+si só, um requisito de implementação. Todos foram **avaliados** na Fase 10 — ver
+as decisões na seção "Conclusão"; avaliado **não** significa aprovado para
+implementação.)
 
-- [ ] Persistência do `GameRecord` (por exemplo JSON, SQLite ou banco de dados);
-- [ ] Histórico de partidas entre execuções;
-- [ ] Arquitetura de múltiplas interfaces;
-- [ ] GUI;
-- [ ] Configuração das regras (valores oficiais, sequência de rodadas, percentuais);
-- [ ] Estratégias alternativas do Banqueiro.
+- [x] Persistência do `GameRecord` (por exemplo JSON, SQLite ou banco de dados);
+- [x] Histórico de partidas entre execuções;
+- [x] Arquitetura de múltiplas interfaces;
+- [x] GUI;
+- [x] Configuração das regras (valores oficiais, sequência de rodadas, percentuais);
+- [x] Estratégias alternativas do Banqueiro.
 
 ## Para cada tema, avaliar (quando aplicável)
 
