@@ -23,8 +23,8 @@ def reject_all_inputs(swap_answer: str) -> list[str]:
     return inputs
 
 
-def topa_round_one_inputs(simulate_answer: str) -> list[str]:
-    return ["10", "1", "2", "3", "4", "5", "6", "t", simulate_answer]
+def topa_round_one_inputs(simulate_answer: str, *, decision: str = "t") -> list[str]:
+    return ["10", "1", "2", "3", "4", "5", "6", decision, simulate_answer]
 
 
 def test_topa_flow_presents_official_result(run_cli) -> None:
@@ -32,7 +32,31 @@ def test_topa_flow_presents_official_result(run_cli) -> None:
     assert "Bem-vindo" in console.text
     assert "Sua maleta é a de número 10." in console.text
     assert "--- Rodada 1 ---" in console.text
-    assert "Oferta do Banqueiro (rodada 1)" in console.text
+    assert "OFERTA DO BANQUEIRO (rodada 1)" in console.text
+    assert "TOPOU" in console.text
+
+
+def test_round_shows_status_and_available_briefcases(run_cli) -> None:
+    console = run_cli(topa_round_one_inputs("n"))
+    assert "Rodada 1 | Sua maleta: 10" in console.text
+    assert "Maletas disponíveis:" in console.text
+
+
+def test_decision_block_lists_all_values_even_in_early_round(run_cli) -> None:
+    console = run_cli(topa_round_one_inputs("n"))
+    # Round 1 decision: 6 opened, 20 values still in play — all listed.
+    assert "Valores ainda em jogo (20):" in console.text
+    # A high value that was not opened is shown before the decision.
+    assert "R$ 2.000.000,00" in console.text
+
+
+def test_offer_is_not_duplicated_in_the_decision(run_cli) -> None:
+    console = run_cli(topa_round_one_inputs("n"))
+    assert console.text.count("OFERTA DO BANQUEIRO") == 1
+
+
+def test_topa_accepts_sim_alias(run_cli) -> None:
+    console = run_cli(topa_round_one_inputs("n", decision="sim"))
     assert "TOPOU" in console.text
 
 
@@ -45,17 +69,21 @@ def test_topa_then_simulation_shows_comparison(run_cli) -> None:
     assert "R$ 500,00" in console.text
 
 
-def test_endgame_without_swap(run_cli) -> None:
+def test_endgame_without_swap_reveals_both_briefcases(run_cli) -> None:
     console = run_cli(reject_all_inputs("n"))
     assert "Restam duas maletas" in console.text
-    assert "ficou com a sua maleta" in console.text
+    assert "ficou com a maleta 10" in console.text
     assert "R$ 500,00" in console.text  # kept briefcase 10
+    # The other (last) briefcase is 26 (R$ 2.000.000,00) and is now revealed.
+    assert "última maleta (maleta 26)" in console.text
+    assert "R$ 2.000.000,00" in console.text
 
 
-def test_endgame_with_swap(run_cli) -> None:
+def test_endgame_with_swap_reveals_both_briefcases(run_cli) -> None:
     console = run_cli(reject_all_inputs("s"))
-    assert "trocou de maleta" in console.text
-    assert "R$ 2.000.000,00" in console.text  # swapped to briefcase 26
+    assert "trocou a maleta 10 pela maleta 26" in console.text
+    assert "levou R$ 2.000.000,00" in console.text
+    assert "deixou (maleta 10) tinha R$ 500,00" in console.text
 
 
 def test_non_integer_input_reprompts(run_cli) -> None:
@@ -84,5 +112,44 @@ def test_cannot_open_already_opened_briefcase_reprompts(run_cli) -> None:
 
 def test_invalid_decision_reprompts(run_cli) -> None:
     console = run_cli(["10", "1", "2", "3", "4", "5", "6", "maybe", "t", "n"])
-    assert "Resposta inválida. Digite 't' ou 'n'." in console.text
+    assert "Digite Topa (t) ou Não Topa (n)." in console.text
     assert "TOPOU" in console.text
+
+
+def test_seed_is_echoed_when_provided(run_cli) -> None:
+    console = run_cli(topa_round_one_inputs("n"), seed=42)
+    assert "Seed da partida: 42" in console.text
+
+
+class _EofConsole:
+    def __init__(self) -> None:
+        self.outputs: list[str] = []
+
+    def write(self, text: str) -> None:
+        self.outputs.append(text)
+
+    def read_line(self, prompt: str) -> str:
+        raise EOFError
+
+
+class _InterruptConsole:
+    def __init__(self) -> None:
+        self.outputs: list[str] = []
+
+    def write(self, text: str) -> None:
+        self.outputs.append(text)
+
+    def read_line(self, prompt: str) -> str:
+        raise KeyboardInterrupt
+
+
+def test_eof_ends_gracefully(make_controller) -> None:
+    console = _EofConsole()
+    make_controller(console).run()
+    assert "Partida encerrada" in "\n".join(console.outputs)
+
+
+def test_keyboard_interrupt_ends_gracefully(make_controller) -> None:
+    console = _InterruptConsole()
+    make_controller(console).run()
+    assert "Partida encerrada" in "\n".join(console.outputs)

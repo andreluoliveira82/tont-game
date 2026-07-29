@@ -35,7 +35,14 @@ def format_money(money: Money) -> str:
 
 
 def welcome() -> str:
-    return "Bem-vindo ao Topa ou Não Topa!"
+    return (
+        "Bem-vindo ao Topa ou Não Topa!\n"
+        "Escolha a sua maleta: ela será sua e ficará protegida até o final da partida."
+    )
+
+
+def seed_notice(seed: int) -> str:
+    return f"Seed da partida: {seed}"
 
 
 def player_briefcase(number: int) -> str:
@@ -43,32 +50,101 @@ def player_briefcase(number: int) -> str:
 
 
 def round_header(round_number: int) -> str:
-    return f"--- Rodada {round_number} ---"
+    return f"\n--- Rodada {round_number} ---"
+
+
+def status_line(
+    round_number: int,
+    player_number: int,
+    closed_count: int,
+    remaining: Sequence[Money],
+) -> str:
+    """Compact one-line summary of the current game state."""
+    ordered = sorted(remaining)
+    span = f"{format_money(ordered[0])} a {format_money(ordered[-1])}"
+    return (
+        f"Rodada {round_number} | Sua maleta: {player_number} | "
+        f"{closed_count} fechadas | Valores: {span}"
+    )
+
+
+def available_briefcases(numbers: Sequence[int]) -> str:
+    listed = ", ".join(str(number) for number in sorted(numbers))
+    return f"Maletas disponíveis: {listed}"
 
 
 def remaining_values(values: Sequence[Money]) -> str:
-    formatted = ", ".join(format_money(value) for value in sorted(values))
-    return f"Valores ainda em jogo: {formatted}"
-
-
-def eliminated_values(opened: Sequence[Briefcase]) -> str:
-    if not opened:
-        return "Valores eliminados: (nenhum ainda)"
-    values = sorted(briefcase.value for briefcase in opened)
-    formatted = ", ".join(format_money(value) for value in values)
-    return f"Valores eliminados: {formatted}"
+    """Full, clear list of the values still in play (used when few remain)."""
+    listed = " · ".join(format_money(value) for value in sorted(values))
+    return f"Valores em jogo: {listed}"
 
 
 def opened_briefcase(briefcase: Briefcase) -> str:
     return f"Maleta {briefcase.number} aberta: {format_money(briefcase.value)}."
 
 
-def offer(offer_value: Money, round_number: int) -> str:
-    return f"Oferta do Banqueiro (rodada {round_number}): {format_money(offer_value)}."
+_DECISION_RULE = "─" * 44
+_VALUES_PER_LINE = 4
+
+
+def _values_in_lines(values: Sequence[Money]) -> str:
+    formatted = [format_money(value) for value in sorted(values)]
+    lines = [
+        " · ".join(formatted[start : start + _VALUES_PER_LINE])
+        for start in range(0, len(formatted), _VALUES_PER_LINE)
+    ]
+    return "\n".join(lines)
+
+
+def decision_block(
+    offer_value: Money,
+    round_number: int,
+    remaining: Sequence[Money],
+    player_number: int,
+    closed_count: int,
+) -> str:
+    """Everything the player needs to decide Topa/Não Topa, in one block.
+
+    Shows the offer, the full list of remaining values (sorted, grouped in
+    readable lines) with their count, the player's briefcase and how many
+    briefcases are still closed.
+    """
+    return (
+        f"{_DECISION_RULE}\n"
+        f"OFERTA DO BANQUEIRO (rodada {round_number}) — {format_money(offer_value)}\n"
+        f"\n"
+        f"Valores ainda em jogo ({len(remaining)}):\n"
+        f"{_values_in_lines(remaining)}\n"
+        f"\n"
+        f"Sua maleta: {player_number} · Maletas fechadas: {closed_count}\n"
+        f"{_DECISION_RULE}"
+    )
 
 
 def endgame_intro() -> str:
-    return "Restam duas maletas: a sua e a última maleta fechada."
+    return "\nRestam duas maletas: a sua e a última maleta fechada."
+
+
+def endgame_reveal(
+    original_number: int,
+    original_value: Money,
+    other_number: int,
+    other_value: Money,
+    swapped: bool,
+) -> str:
+    """Reveal both final briefcases and the outcome of the swap decision."""
+    if swapped:
+        return (
+            f"Você trocou a maleta {original_number} pela maleta {other_number}.\n"
+            f"Você levou {format_money(other_value)}.\n"
+            f"A maleta que você deixou (maleta {original_number}) "
+            f"tinha {format_money(original_value)}."
+        )
+    return (
+        f"Você ficou com a maleta {original_number} "
+        f"e levou {format_money(original_value)}.\n"
+        f"A última maleta (maleta {other_number}) tinha {format_money(other_value)}."
+    )
 
 
 def official_result(result: OfficialResult) -> str:
@@ -100,6 +176,10 @@ def simulation_comparison(simulation: SimulationResult) -> str:
         f"Diferença:             {difference}\n"
         f"{verdict}"
     )
+
+
+def aborted() -> str:
+    return "\nPartida encerrada. Até a próxima!"
 
 
 def error_message(error: DomainError) -> str:

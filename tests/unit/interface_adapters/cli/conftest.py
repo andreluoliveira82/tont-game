@@ -74,3 +74,13 @@ def run_cli():
         return console
 
     return _run
+
+
+@pytest.fixture
+def make_controller():
+    """Return a factory that builds a controller around any console double."""
+
+    def _make(console: object, *, seed: int | None = None) -> CliController:
+        return build_controller(console, seed=seed)  # type: ignore[arg-type]
+
+    return _make
