@@ -23,7 +23,8 @@ from tont_game.domain.identifiers import GameIdGenerator
 from tont_game.domain.randomness import RandomSource
 from tont_game.domain.services.banker import BankerStrategy
 from tont_game.domain.value_objects.game_status import GameStatus
-from tont_game.interface_adapters.cli import presenters
+from tont_game.domain.value_objects.money import Money
+from tont_game.interface_adapters.cli import narration, presenters
 from tont_game.interface_adapters.cli.views import Console
 
 _ACCEPT_INPUTS = frozenset({"t", "topa", "s", "sim"})
@@ -156,6 +157,17 @@ class CliController:
         result = session.game_record.official_result
         assert result is not None
         self._console.write(presenters.official_result(result))
+        self._narrate_ending(
+            result.amount_received, result.player_briefcase_value, session
+        )
+
+    def _narrate_ending(self, got: Money, gave_up: Money, session: GameSession) -> None:
+        values = [value for _, value in session.game_record.initial_distribution]
+        moment = narration.moment_for(got, gave_up, max(values), min(values))
+        if moment is None:
+            return
+        variants = narration.messages(moment)
+        self._console.write(self._random_source.shuffle(variants)[0])
 
     def _maybe_simulate(self, session: GameSession) -> None:
         result = session.game_record.official_result

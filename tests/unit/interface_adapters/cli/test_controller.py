@@ -6,6 +6,9 @@ briefcase ``i`` holds the ``i``-th official value. The player picks briefcase
 The ``run_cli`` fixture builds and runs the controller and returns the console.
 """
 
+from tont_game.interface_adapters.cli import narration
+from tont_game.interface_adapters.cli.narration import EndingMoment
+
 # Briefcase numbers the player may open (all but the chosen briefcase 10).
 OPENABLE = [n for n in range(1, 27) if n != 10]
 QUOTAS = [6, 5, 4, 3, 2, 1, 1, 1, 1]
@@ -141,6 +144,35 @@ class _InterruptConsole:
 
     def read_line(self, prompt: str) -> str:
         raise KeyboardInterrupt
+
+
+def test_topa_triumph_narration_follows_the_factual_line(run_cli) -> None:
+    # Player keeps briefcase 10 (R$ 500,00); the round-1 offer dwarfs it.
+    console = run_cli(topa_round_one_inputs("n"))
+    line = narration.messages(EndingMoment.TRIUMPH)[0]
+    assert line in console.text
+    assert console.text.index("TOPOU") < console.text.index(line)
+
+
+def test_topa_regret_narration_is_shown(run_cli) -> None:
+    # Player keeps briefcase 26 (R$ 2.000.000,00); the accepted offer is far less.
+    console = run_cli(["26", "1", "2", "3", "4", "5", "6", "t", "n"])
+    assert narration.messages(EndingMoment.REGRET)[0] in console.text
+
+
+def test_topa_close_result_stays_silent(run_cli) -> None:
+    # Player keeps briefcase 20 (R$ 100.000,00), close to the offer: no narration.
+    console = run_cli(["20", "1", "2", "3", "4", "5", "6", "t", "n"])
+    every_message = [
+        text for moment in EndingMoment for text in narration.messages(moment)
+    ]
+    assert not any(text in console.text for text in every_message)
+
+
+def test_topa_narration_is_deterministic(run_cli) -> None:
+    first = run_cli(topa_round_one_inputs("n")).text
+    second = run_cli(topa_round_one_inputs("n")).text
+    assert first == second
 
 
 def test_eof_ends_gracefully(make_controller) -> None:
