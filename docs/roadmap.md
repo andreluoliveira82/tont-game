@@ -173,25 +173,27 @@ produzindo um `SimulationResult` **separado** (não-histórico). Único cenário
 
 # Fase 7 — Testes de integração
 
-Criar cenários completos:
+**Status:** ✅ Concluída — commit `c7a1b67` (suíte de testes de integração via casos de uso reais; `tests/integration/conftest.py` com dublês/`GameDriver` de testes; **sem** alteração de código de produção; 159 testes no total).
 
-- [ ] partida iniciada;
-- [ ] escolha da maleta;
-- [ ] rodada 1;
-- [ ] oferta ao final da rodada;
-- [ ] recusa;
-- [ ] rodada seguinte;
-- [ ] múltiplas ofertas (incluindo oscilação);
-- [ ] aceitação da oferta;
-- [ ] simulação pós-jogo após aceitação;
-- [ ] fluxo até a Rodada 9;
-- [ ] troca final aceita e recusada;
-- [ ] tentativa inválida de abertura;
-- [ ] tentativa de abrir maleta do jogador;
-- [ ] tentativa de continuar jogo encerrado;
-- [ ] verificação do histórico completo da partida.
+Cenários completos (via casos de uso reais, sem CLI):
 
-**Critério de saída:** fluxo principal protegido por testes.
+- [x] partida iniciada;
+- [x] escolha da maleta;
+- [x] rodada 1;
+- [x] oferta ao final da rodada;
+- [x] recusa;
+- [x] rodada seguinte;
+- [x] múltiplas ofertas (incluindo oscilação);
+- [x] aceitação da oferta;
+- [x] simulação pós-jogo após aceitação;
+- [x] fluxo até a Rodada 9;
+- [x] troca final aceita e recusada;
+- [x] tentativa inválida de abertura;
+- [x] tentativa de abrir maleta do jogador;
+- [x] tentativa de continuar jogo encerrado;
+- [x] verificação do histórico completo da partida.
+
+**Critério de saída:** fluxo principal protegido por testes. ✅ Atendido.
 
 ---
 

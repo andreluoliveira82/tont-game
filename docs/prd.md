@@ -182,24 +182,24 @@ Estado atual, histórico, resultado oficial e simulação pós-jogo devem perman
 
 ## 6. Critérios de aceitação
 
-- [ ] Uma partida sempre começa com exatamente 26 maletas.
+- [x] Uma partida sempre começa com exatamente 26 maletas.
 - [ ] Cada valor oficial aparece exatamente uma vez.
-- [ ] O jogador consegue selecionar uma maleta inicial válida.
-- [ ] A maleta inicial permanece fechada durante as rodadas normais.
-- [ ] Uma maleta aberta não pode ser aberta novamente.
-- [ ] A maleta do jogador não pode ser selecionada para eliminação normal.
-- [ ] A quantidade de aberturas respeita a sequência das 9 rodadas.
-- [ ] Ao final da Rodada 9 restam exatamente duas maletas fechadas.
-- [ ] O Banqueiro realiza uma oferta ao final de cada uma das 9 rodadas.
-- [ ] A oferta pode subir, cair ou permanecer próxima da anterior.
-- [ ] O jogador pode aceitar ou recusar a oferta.
-- [ ] Ao aceitar, a partida oficial termina e o resultado oficial é registrado.
-- [ ] Ao recusar, o jogo continua enquanto houver rodadas.
-- [ ] Após recusar a oferta da Rodada 9, o jogador pode optar pela troca final.
-- [ ] A troca final ocorre apenas entre a maleta do jogador e a última maleta fechada.
-- [ ] A simulação pós-jogo, quando executada, usa a mesma distribuição e não altera o resultado oficial.
-- [ ] O histórico da partida permite reconstruir a narrativa completa.
-- [ ] As regras podem ser testadas sem depender da CLI.
+- [x] O jogador consegue selecionar uma maleta inicial válida.
+- [x] A maleta inicial permanece fechada durante as rodadas normais.
+- [x] Uma maleta aberta não pode ser aberta novamente.
+- [x] A maleta do jogador não pode ser selecionada para eliminação normal.
+- [x] A quantidade de aberturas respeita a sequência das 9 rodadas.
+- [x] Ao final da Rodada 9 restam exatamente duas maletas fechadas.
+- [x] O Banqueiro realiza uma oferta ao final de cada uma das 9 rodadas.
+- [x] A oferta pode subir, cair ou permanecer próxima da anterior.
+- [x] O jogador pode aceitar ou recusar a oferta.
+- [x] Ao aceitar, a partida oficial termina e o resultado oficial é registrado.
+- [x] Ao recusar, o jogo continua enquanto houver rodadas.
+- [x] Após recusar a oferta da Rodada 9, o jogador pode optar pela troca final.
+- [x] A troca final ocorre apenas entre a maleta do jogador e a última maleta fechada.
+- [x] A simulação pós-jogo, quando executada, usa a mesma distribuição e não altera o resultado oficial.
+- [x] O histórico da partida permite reconstruir a narrativa completa.
+- [x] As regras podem ser testadas sem depender da CLI.
 
 ---
 
