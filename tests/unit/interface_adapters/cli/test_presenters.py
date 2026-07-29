@@ -177,6 +177,28 @@ def test_simulation_comparison() -> None:
     assert "teria ganhado mais" in text
 
 
+def test_simulation_comparison_official_beats_hypothetical() -> None:
+    simulation = SimulationResult(
+        scenario=SimulationScenario.CONTINUE_HOLD,
+        hypothetical_amount=Money.of("100"),
+        official_amount=Money.of("250"),
+    )
+    text = presenters.simulation_comparison(simulation)
+    assert "R$ 150,00" in text  # absolute difference
+    assert "Você fez bem em aceitar a oferta." in text
+
+
+def test_simulation_comparison_tie() -> None:
+    simulation = SimulationResult(
+        scenario=SimulationScenario.CONTINUE_HOLD,
+        hypothetical_amount=Money.of("100"),
+        official_amount=Money.of("100"),
+    )
+    text = presenters.simulation_comparison(simulation)
+    assert "R$ 0,00" in text  # no difference
+    assert "Daria no mesmo." in text
+
+
 def test_aborted_message() -> None:
     assert "Partida encerrada" in presenters.aborted()
 
