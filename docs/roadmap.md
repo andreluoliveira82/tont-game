@@ -224,15 +224,34 @@ regra de negócio; interface em **PT-BR**; formatação monetária `R$ 1.000,00`
 
 ---
 
-# Fase 9 — Refinamento
+# Fase 9 — Refinamento da CLI
 
-- [ ] Melhorar experiência visual da CLI.
-- [ ] Melhorar mensagens.
-- [ ] Revisar tratamento de erros.
-- [ ] Revisar testes.
-- [ ] Revisar documentação.
-- [ ] Criar testes de regressão.
-- [ ] Atualizar README.
+**Status:** ✅ Concluída — commit `2210639` (refinamento de UX da CLI a partir de testes práticos reais; **restrito** a `interface_adapters/cli` e testes; 15 testes novos, 195 no total).
+
+Refinamento **exclusivo** da camada CLI e de seus testes, a partir de partidas
+reais, **sem** alterar Domain/Application/Infrastructure, regras de negócio ou
+casos de uso, e **sem** cores, animações, áudio ou GUI (texto puro em PT-BR).
+
+- [x] Melhorar experiência visual da CLI (texto puro, sem cores/animações).
+- [x] Melhorar mensagens (boas-vindas com orientação; textos mais claros; menos verbosidade).
+- [x] Revisar tratamento de erros (encerramento gracioso em EOF/KeyboardInterrupt).
+- [x] Revisar testes.
+- [x] Revisar documentação (esta sincronização documental).
+- [x] Criar testes de regressão (cobrindo o bloco de decisão, o endgame revelado e o encerramento gracioso).
+- [x] Atualizar README.
+
+Principais entregas:
+
+- **Descoberta das maletas disponíveis:** exibição dos números das maletas ainda abríveis a cada rodada.
+- **Status compacto da partida:** resumo em uma linha (rodada, maleta do jogador, maletas fechadas, faixa de valores).
+- **Bloco de decisão após a oferta:** apresentação dedicada entre a oferta e o prompt, com a oferta em destaque (uma única vez) — **sem** revelar a média/fórmula do Banqueiro.
+- **Valores completos no momento crítico:** lista **completa** e ordenada dos valores ainda em jogo, agrupada em linhas, sempre exibida no bloco de decisão.
+- **Endgame e troca:** revelação das duas maletas finais capturando as identidades **antes** da troca (com e sem troca).
+- **Aliases de entrada:** Topa (`t`/`topa`/`s`/`sim`), Não Topa (`n`/`nao`/`não`) e sim/não (`s`/`sim` · `n`/`nao`/`não`).
+- **Encerramento gracioso:** tratamento de EOF/KeyboardInterrupt com mensagem de despedida.
+- **Eco da seed:** exibição da seed quando fornecida, reforçando a reprodutibilidade.
+
+**Critério de saída:** CLI mais clara e jogável a partir de testes práticos, com o momento da decisão bem apresentado, preservando integralmente a arquitetura e as regras de negócio. ✅ Atendido.
 
 ---
 

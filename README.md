@@ -31,9 +31,11 @@ Detalhes completos em [`docs/game-rules.md`](docs/game-rules.md) e nos ADRs.
 
 ## Estado do projeto
 
-Fases 0 a 8 concluídas: documentação e decisões, setup técnico, modelo de domínio, aleatoriedade/distribuição, estratégia do Banqueiro, a camada de aplicação com histórico da partida, o endgame, a simulação pós-jogo, a suíte de testes de integração e a **interface CLI**. Já existem o núcleo do domínio (maletas, estado da partida, 9 rodadas, invariantes), a distribuição aleatória reproduzível, o cálculo das ofertas do Banqueiro, os casos de uso do fluxo normal (`StartGame`, `SelectInitialBriefcase`, `OpenBriefcase`, `ProcessBankerOffer`, `DecideOffer`), o histórico factual (`GameRecord`), o resultado oficial imutável (`OfficialResult`), o endgame (`DecideFinalSwap`, com e sem troca) e a simulação pós-jogo (`RunPostGameSimulation`, cenário `CONTINUE_HOLD`).
+Fases 0 a 9 concluídas: documentação e decisões, setup técnico, modelo de domínio, aleatoriedade/distribuição, estratégia do Banqueiro, a camada de aplicação com histórico da partida, o endgame, a simulação pós-jogo, a suíte de testes de integração, a **interface CLI** e o seu **refinamento**. Já existem o núcleo do domínio (maletas, estado da partida, 9 rodadas, invariantes), a distribuição aleatória reproduzível, o cálculo das ofertas do Banqueiro, os casos de uso do fluxo normal (`StartGame`, `SelectInitialBriefcase`, `OpenBriefcase`, `ProcessBankerOffer`, `DecideOffer`), o histórico factual (`GameRecord`), o resultado oficial imutável (`OfficialResult`), o endgame (`DecideFinalSwap`, com e sem troca) e a simulação pós-jogo (`RunPostGameSimulation`, cenário `CONTINUE_HOLD`).
 
-A **Fase 8** adicionou uma **interface de linha de comando** (`interface_adapters/cli`: `CliController`, `presenters`, `views`) que orquestra os casos de uso existentes, sem regra de negócio. A CLI: está em **PT-BR**; permite jogar a **partida completa** pelo terminal (seleção da maleta, rodadas, aberturas, ofertas, Topa/Não Topa); conduz o **endgame** com **troca final**; oferece a **simulação pós-jogo após um Topa** e apresenta a **comparação oficial × hipotético**; **trata entradas inválidas** com reprompt; usa formatação monetária brasileira (`R$ 1.000,00`); e aceita uma **seed opcional** para partidas reproduzíveis. O projeto tem **180 testes passando**. Ainda **não** há analytics nem persistência. O desenvolvimento segue o [`roadmap.md`](docs/roadmap.md), uma fase por vez; o próximo passo é a **Fase 9 — Refinamento** (ainda não iniciada).
+A **Fase 8** adicionou uma **interface de linha de comando** (`interface_adapters/cli`: `CliController`, `presenters`, `views`) que orquestra os casos de uso existentes, sem regra de negócio. A CLI: está em **PT-BR**; permite jogar a **partida completa** pelo terminal (seleção da maleta, rodadas, aberturas, ofertas, Topa/Não Topa); conduz o **endgame** com **troca final**; oferece a **simulação pós-jogo após um Topa** e apresenta a **comparação oficial × hipotético**; **trata entradas inválidas** com reprompt; usa formatação monetária brasileira (`R$ 1.000,00`); e aceita uma **seed opcional** para partidas reproduzíveis.
+
+A **Fase 9** refinou a experiência da CLI a partir de testes práticos, **sem** alterar regras de negócio nem a arquitetura (mudanças restritas a `interface_adapters/cli` e testes; texto puro, sem cores, animações, áudio ou GUI): lista as **maletas disponíveis** a cada rodada, mostra um **status compacto** da partida, apresenta um **bloco de decisão** após a oferta (com a oferta em destaque e a **lista completa** dos valores ainda em jogo no momento crítico, sem revelar a média do Banqueiro), revela **as duas maletas** no endgame, aceita **aliases de entrada**, ecoa a **seed** quando fornecida e encerra graciosamente em EOF/`Ctrl-C`. O projeto tem **195 testes passando**. Ainda **não** há analytics nem persistência. O desenvolvimento segue o [`roadmap.md`](docs/roadmap.md), uma fase por vez; o próximo passo é a **Fase 10 — Preparação para evolução** (ainda não iniciada).
 
 ## Requisitos
 
@@ -64,7 +66,12 @@ uv run python -m tont_game        # partida aleatória
 uv run python -m tont_game 42     # partida reproduzível (seed 42)
 ```
 
-A interface é em Português do Brasil: escolha a maleta inicial, abra maletas a cada rodada, decida **Topa/Não Topa** a cada oferta e, ao final, conduza a troca do endgame ou (após um Topa) a simulação pós-jogo.
+A interface é em Português do Brasil: escolha a maleta inicial, abra maletas a cada rodada, decida **Topa/Não Topa** a cada oferta e, ao final, conduza a troca do endgame ou (após um Topa) a simulação pós-jogo. A cada rodada a CLI mostra as maletas disponíveis e um status compacto; ao final da rodada, um bloco de decisão reúne a oferta e a lista completa dos valores ainda em jogo.
+
+Aliases aceitos nas decisões:
+
+- **Topa:** `t`, `topa`, `s` ou `sim`; **Não Topa:** `n`, `nao` ou `não`.
+- **Sim/Não** (troca final e simulação pós-jogo): `s`/`sim` para sim; `n`/`nao`/`não` para não.
 
 ## Ferramentas
 
