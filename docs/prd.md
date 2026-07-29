@@ -183,7 +183,7 @@ Estado atual, histórico, resultado oficial e simulação pós-jogo devem perman
 ## 6. Critérios de aceitação
 
 - [x] Uma partida sempre começa com exatamente 26 maletas.
-- [ ] Cada valor oficial aparece exatamente uma vez.
+- [x] Cada valor oficial aparece exatamente uma vez.
 - [x] O jogador consegue selecionar uma maleta inicial válida.
 - [x] A maleta inicial permanece fechada durante as rodadas normais.
 - [x] Uma maleta aberta não pode ser aberta novamente.

@@ -69,7 +69,8 @@ tont-game/
 │       ├── 0002-estrategia-inicial-do-banqueiro.md
 │       ├── 0003-troca-final.md
 │       ├── 0004-simulacao-pos-jogo.md
-│       └── 0005-historico-da-partida-e-persistencia.md
+│       ├── 0005-historico-da-partida-e-persistencia.md
+│       └── 0006-camada-application-e-historico.md
 │
 ├── src/
 │   └── tont_game/
@@ -124,9 +125,12 @@ tont-game/
 │
 ├── tests/
 │   ├── test_smoke.py
+│   ├── test_main.py                 # composition root da CLI (Fase 8)
 │   ├── unit/
 │   │   ├── domain/
-│   │   └── infrastructure/
+│   │   ├── application/             # (Fase 5)
+│   │   ├── infrastructure/
+│   │   └── interface_adapters/cli/  # (Fases 8–9)
 │   └── integration/                 # (Fase 7)
 │
 ├── .gitignore

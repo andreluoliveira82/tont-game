@@ -75,14 +75,14 @@ O LLM não deve avançar automaticamente para a próxima fase.
 - [x] Permitir semente determinística (`DefaultRandomSource(seed=...)`).
 - [x] Embaralhar valores (serviço `create_shuffled_game`).
 - [x] Associar valores às maletas (via `GameState.create`).
-- [ ] Registrar a seed na configuração inicial da partida quando utilizada. → **adiado para a Fase 5** (`GameRecord`); ver nota abaixo e ADR 0005.
+- [x] Registrar a seed na configuração inicial da partida quando utilizada. → **adiado na Fase 3 e concluído na Fase 5** (`StartGame`/`GameRecord`); ver nota abaixo e ADR 0005.
 - [x] Testar distribuição.
 - [x] Testar reprodução com seed.
 
 > Nota: a seed já é exposta por `DefaultRandomSource.seed`. Seu registro na
-> configuração inicial da partida será feito no `GameRecord` (Fase 5). A
-> distribuição concreta é o registro histórico; a seed é complementar
-> (reprodutibilidade técnica). Ver ADR 0005.
+> configuração inicial da partida foi **adiado nesta fase e realizado na Fase 5**
+> (o `StartGame` grava a seed no `GameRecord`). A distribuição concreta é o
+> registro histórico; a seed é complementar (reprodutibilidade técnica). Ver ADR 0005.
 
 **Critério de saída:** partidas podem ser aleatórias e reproduzíveis. ✅ Atendido (distribuição via `DefaultRandomSource`, reprodutível por seed, domínio desacoplado).
 
@@ -209,7 +209,7 @@ regra de negócio; interface em **PT-BR**; formatação monetária `R$ 1.000,00`
 - [x] Criar presenters (Apresentador).
 - [x] Exibir maleta do jogador.
 - [x] Exibir valores restantes.
-- [x] Exibir valores eliminados.
+- [x] Exibir valores eliminados. → primeira versão nesta fase (listagem agregada por rodada); **refinado na Fase 9**: a listagem agregada foi removida em favor da revelação de cada maleta no momento da abertura e da lista completa de valores restantes no bloco de decisão.
 - [x] Exibir rodada atual.
 - [x] Exibir oferta.
 - [x] Receber Topa/Não Topa.
@@ -255,18 +255,114 @@ Principais entregas:
 
 ---
 
-# Fase 10 — Preparação para evolução
+# Fase 10 — Preparação para evolução (avaliação e decisão)
 
-Somente após a CLI estar estável:
+**Status:** ⏳ Não iniciada.
 
-- [ ] avaliar persistência do `GameRecord` (JSON, SQLite, banco de dados);
-- [ ] avaliar GUI;
-- [ ] avaliar arquitetura de múltiplas interfaces;
-- [ ] avaliar histórico de partidas entre execuções;
-- [ ] avaliar configuração de regras;
-- [ ] avaliar diferentes estratégias do Banqueiro.
+> **Natureza da fase:** esta é uma fase de **avaliação, investigação e decisão
+> arquitetural/produto**. Ela **não implementa funcionalidades de produto**. Seu
+> propósito é decidir, com base no estado real do projeto, quais evoluções fazem
+> sentido, quais devem ser adiadas ou descartadas, e quais decisões precisam ser
+> registradas **antes** de qualquer implementação futura. Nenhum tema abaixo deve
+> ser convertido automaticamente em requisito de implementação.
 
-Nenhum item desta fase deve ser implementado antecipadamente sem necessidade.
+## Objetivo
+
+Definir, com base no estado atual do projeto (Fases 0–9 concluídas: domínio,
+aplicação, histórico, endgame, simulação, testes de integração e CLI refinada),
+quais evoluções futuras fazem sentido, quais devem ser descartadas ou adiadas e
+quais decisões arquiteturais precisam ser tomadas antes de qualquer implementação.
+
+## Motivação
+
+Vários temas de evolução foram mencionados ao longo do desenvolvimento
+(persistência, GUI, múltiplas interfaces, etc.) sem uma decisão consciente sobre
+prioridade, valor e impacto. Esta fase existe para **evitar que um agente
+posterior implemente prematuramente** uma funcionalidade apenas por ela ter sido
+citada como possibilidade, e para produzir um conjunto de decisões explícitas que
+guie as fases de implementação seguintes.
+
+## Pré-requisitos
+
+- Fases 0–9 concluídas e documentadas (✅ atendido).
+- Working tree limpo e `task check` verde.
+- CLI estável como primeira interface.
+
+## Documentos e artefatos a analisar
+
+- `docs/prd.md`, `docs/game-rules.md` (escopo e regras vigentes);
+- `docs/architecture.md`, `docs/glossary.md` (arquitetura e vocabulário);
+- `docs/decisions/` (ADRs 0001–0006, decisões vigentes — em especial 0005 sobre persistência);
+- este `docs/roadmap.md` (histórico das fases);
+- código atual de `domain/`, `application/`, `infrastructure/`, `interface_adapters/`;
+- suíte de testes atual (unidade + integração) como baseline de estabilidade.
+
+## Temas a avaliar
+
+(Preservados do planejamento original; podem ser reorganizados, mas nenhum é, por
+si só, um requisito de implementação.)
+
+- [ ] Persistência do `GameRecord` (por exemplo JSON, SQLite ou banco de dados);
+- [ ] Histórico de partidas entre execuções;
+- [ ] Arquitetura de múltiplas interfaces;
+- [ ] GUI;
+- [ ] Configuração das regras (valores oficiais, sequência de rodadas, percentuais);
+- [ ] Estratégias alternativas do Banqueiro.
+
+## Para cada tema, avaliar (quando aplicável)
+
+- problema/oportunidade que seria resolvido;
+- benefício esperado;
+- impacto no usuário;
+- impacto arquitetural;
+- impacto na separação de responsabilidades existente;
+- dependências;
+- complexidade aproximada;
+- riscos;
+- alternativas;
+- relação com o estado atual do projeto;
+- necessidade ou não de ADR;
+- recomendação: **seguir**, **adiar** ou **descartar**.
+
+Não é necessário inventar estimativas numéricas nem antecipar decisões ainda não tomadas.
+
+## Entregáveis esperados
+
+1. um relatório de avaliação consolidado dos temas analisados;
+2. decisões explícitas (seguir/adiar/descartar) sobre cada tema avaliado;
+3. ADRs **somente** quando uma decisão arquitetural relevante justificar (não é obrigatório criar ADR para toda conclusão);
+4. atualização deste `roadmap.md` com os próximos passos aprovados;
+5. eventual definição de futuras fases de implementação (11+), **caso** aprovadas.
+
+## Critérios de saída
+
+A Fase 10 só é considerada concluída quando:
+
+- os temas previstos tiverem sido avaliados;
+- as principais decisões estiverem documentadas;
+- não houver ambiguidade sobre o que será feito a seguir;
+- eventuais ADRs necessários tiverem sido criados;
+- as decisões aprovadas estiverem refletidas no roadmap;
+- nenhuma funcionalidade de produto tiver sido implementada antecipadamente;
+- `task check` continuar verde;
+- o working tree estiver limpo após o commit documental correspondente.
+
+## O que NÃO fazer nesta fase
+
+A Fase 10, por si só, **não** autoriza:
+
+- implementar persistência ou banco de dados;
+- implementar GUI ou criar novas interfaces;
+- implementar histórico entre execuções;
+- alterar regras do jogo;
+- criar novas estratégias do Banqueiro;
+- refatorar o domínio;
+- modificar Application, Domain ou Infrastructure;
+- adicionar funcionalidades apenas para "experimentar";
+- iniciar qualquer implementação que pertença a uma futura fase.
+
+A Fase 10 produz **decisões e documentação**, não código de produto. Qualquer
+implementação decorrente pertence a uma fase futura, aprovada explicitamente.
 
 ---
 
