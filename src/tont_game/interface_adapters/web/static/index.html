@@ -56,12 +56,15 @@
     font-family:ui-sans-serif,system-ui,sans-serif;font-variant-numeric:tabular-nums;}
   .val{display:flex;align-items:center;justify-content:center;flex:1 1 0;min-height:0;width:100%;
     padding:2px 6px;border-radius:7px;font-size:clamp(.55rem,1.5vw,.82rem);font-weight:600;
-    color:#e9d9a8;white-space:nowrap;letter-spacing:.01em;
-    background:linear-gradient(180deg,rgba(232,200,119,.09),rgba(232,200,119,.02));
-    border:1px solid rgba(232,200,119,.15);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 0 9px rgba(232,200,119,.04);
+    color:#f0e0af;white-space:nowrap;letter-spacing:.01em;
+    background:linear-gradient(180deg,rgba(232,200,119,.13),rgba(232,200,119,.03));
+    border:1px solid rgba(232,200,119,.22);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 0 9px rgba(232,200,119,.05);
+    animation:plaqueSoft 4.6s ease-in-out infinite;
     transition:color .6s var(--ease),background .6s var(--ease),border-color .6s var(--ease),
       box-shadow .6s var(--ease),opacity .6s var(--ease),transform .6s var(--ease);}
+  @keyframes plaqueSoft{0%,100%{box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 0 8px rgba(232,200,119,.06);}
+    50%{box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 0 15px rgba(232,200,119,.16);}}
   .val.warm{color:#f0dca0;background:linear-gradient(180deg,rgba(232,200,119,.16),rgba(232,200,119,.04));
     border-color:rgba(232,200,119,.28);}
   .val.hot{color:#fff2cf;background:linear-gradient(180deg,rgba(232,200,119,.30),rgba(232,200,119,.09));
@@ -100,17 +103,18 @@
   .cases{display:grid;gap:clamp(8px,1.9vw,16px);width:100%;max-width:600px;
     grid-template-columns:repeat(6,1fr);}
   @media(max-width:560px){.cases{grid-template-columns:repeat(5,1fr);}}
-  .case{aspect-ratio:5/4;border-radius:12px;position:relative;cursor:pointer;color:var(--gold);
-    font-variant-numeric:tabular-nums;font-weight:600;font-size:clamp(1rem,3.6vw,1.5rem);display:flex;
+  .case{aspect-ratio:5/4;border-radius:12px;position:relative;cursor:pointer;color:#ffe7a6;
+    font-variant-numeric:tabular-nums;font-weight:600;font-size:clamp(1.05rem,3.8vw,1.6rem);display:flex;
     align-items:center;justify-content:center;overflow:hidden;
-    text-shadow:0 1px 1px rgba(0,0,0,.85),0 0 14px rgba(232,200,119,.35);
+    text-shadow:0 1px 1px rgba(0,0,0,.85),0 0 18px rgba(232,200,119,.55);
     background:
-      linear-gradient(180deg,rgba(255,255,255,.14),transparent 22%),
-      linear-gradient(to bottom,transparent 46%,rgba(232,200,119,.22) 48%,rgba(0,0,0,.4) 50%,transparent 52%),
-      linear-gradient(158deg,#423d28 0%,#2a2415 46%,#120e07 100%);
-    border:1px solid rgba(232,200,119,.34);
-    box-shadow:inset 0 2px 0 rgba(255,255,255,.18),inset 0 -16px 26px rgba(0,0,0,.55),
-      0 12px 28px rgba(0,0,0,.62);
+      radial-gradient(120% 80% at 50% 0%, rgba(255,236,180,.22), transparent 60%),
+      linear-gradient(180deg,rgba(255,255,255,.18),transparent 24%),
+      linear-gradient(to bottom,transparent 46%,rgba(232,200,119,.30) 48%,rgba(0,0,0,.42) 50%,transparent 52%),
+      linear-gradient(158deg,#6a5f3f 0%,#41371f 46%,#1e1609 100%);
+    border:1px solid rgba(232,200,119,.46);
+    box-shadow:inset 0 2px 0 rgba(255,255,255,.22),inset 0 -16px 26px rgba(0,0,0,.5),
+      0 12px 28px rgba(0,0,0,.62),0 0 22px rgba(232,200,119,.10);
     transition:transform .26s var(--ease),box-shadow .26s var(--ease),
       border-color .26s var(--ease),opacity .42s var(--ease);-webkit-tap-highlight-color:transparent;}
   .case::before{content:"";position:absolute;left:33%;right:33%;top:8%;height:8px;
@@ -322,6 +326,7 @@ function buildRails(view){
   const mk=(v)=>{const n=el("div","val",money(v));
     if(v>=max*0.5)n.classList.add("hot");else if(v>=max*0.1)n.classList.add("warm");
     if(v===max)n.classList.add("apex");        /* the top dream glimmers */
+    n.style.animationDelay=(Math.random()*4).toFixed(2)+"s";   /* varied, staggered shimmer */
     valNodes.set(v,n);return n;};
   const half=Math.ceil(asc.length/2);
   asc.slice(0,half).forEach(v=>railL.appendChild(mk(v)));   /* menores, crescente */
