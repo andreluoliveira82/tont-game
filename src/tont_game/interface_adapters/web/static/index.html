@@ -66,23 +66,35 @@
   .cases{display:grid;gap:clamp(6px,1.4vw,11px);width:100%;max-width:520px;
     grid-template-columns:repeat(6,1fr);}
   @media(max-width:560px){.cases{grid-template-columns:repeat(5,1fr);}}
-  .case{aspect-ratio:5/4;border-radius:9px;position:relative;cursor:pointer;color:var(--ink);
-    font-variant-numeric:tabular-nums;font-size:clamp(.82rem,3.1vw,1.1rem);display:flex;
-    align-items:center;justify-content:center;overflow:hidden;
-    background:linear-gradient(160deg,#20201d 0%,#16150f 55%,#0e0d09 100%);
-    border:1px solid rgba(232,200,119,.14);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 5px 14px rgba(0,0,0,.45);
+  .case{aspect-ratio:5/4;border-radius:10px;position:relative;cursor:pointer;color:#f1ead9;
+    font-variant-numeric:tabular-nums;font-size:clamp(.82rem,3.1vw,1.12rem);display:flex;
+    align-items:center;justify-content:center;overflow:hidden;text-shadow:0 1px 0 rgba(0,0,0,.6);
+    background:
+      linear-gradient(160deg,rgba(255,255,255,.07),transparent 26%),
+      linear-gradient(to bottom,transparent 60.5%,rgba(232,200,119,.16) 61.2%,transparent 62.4%),
+      linear-gradient(158deg,#2b2a25 0%,#1c1b15 50%,#0f0e0a 100%);
+    border:1px solid rgba(232,200,119,.20);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.12),inset 0 -12px 20px rgba(0,0,0,.5),0 9px 20px rgba(0,0,0,.55);
     transition:transform 240ms var(--ease),box-shadow 240ms var(--ease),
       border-color 240ms var(--ease),opacity 420ms var(--ease);-webkit-tap-highlight-color:transparent;}
-  .case::before{content:"";position:absolute;left:18%;right:18%;top:20%;height:3px;border-radius:3px;
-    background:linear-gradient(90deg,transparent,rgba(232,200,119,.35),transparent);opacity:.5;}
-  .case:hover{transform:translateY(-3px);border-color:var(--gold-deep);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 9px 24px rgba(0,0,0,.55),0 0 20px rgba(232,200,119,.12);}
-  .case:active{transform:translateY(-1px) scale(.98);}
-  .case.spent{cursor:default;opacity:.24;filter:saturate(.4);transform:none;box-shadow:none;
-    border-color:rgba(255,255,255,.05);}
-  .case.mine{border-color:var(--gold);cursor:default;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 0 30px rgba(232,200,119,.22),0 6px 18px rgba(0,0,0,.5);}
+  .case::before{content:"";position:absolute;left:26%;right:26%;top:14%;height:5px;border-radius:4px;
+    background:linear-gradient(180deg,#3a352a,#0d0c08);
+    box-shadow:0 1px 0 rgba(232,200,119,.25),inset 0 1px 0 rgba(255,255,255,.15);}
+  .case::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+    background:linear-gradient(115deg,transparent 42%,rgba(255,255,255,.06) 50%,transparent 58%);
+    opacity:0;transition:opacity 240ms var(--ease);}
+  .case:hover{transform:translateY(-4px);border-color:var(--gold);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.14),inset 0 -12px 20px rgba(0,0,0,.5),
+      0 14px 30px rgba(0,0,0,.6),0 0 24px rgba(232,200,119,.16);}
+  .case:hover::after{opacity:1;}
+  .case:active{transform:translateY(-1px) scale(.985);}
+  .case.spent{cursor:default;opacity:.22;filter:saturate(.35);transform:none;box-shadow:none;
+    border-color:rgba(255,255,255,.05);text-shadow:none;}
+  .case.spent::before,.case.spent::after{opacity:0;}
+  .case.mine{border-color:var(--gold);cursor:default;color:var(--gold);
+    background:linear-gradient(160deg,rgba(255,255,255,.10),transparent 26%),
+      linear-gradient(158deg,#33301f,#1a1810 55%,#100e08);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 0 34px rgba(232,200,119,.28),0 8px 20px rgba(0,0,0,.5);}
 
   .mycase{display:flex;flex-direction:column;align-items:center;gap:5px;}
   .mycase .seal{min-width:64px;height:54px;padding:0 12px;border-radius:11px;display:flex;
@@ -153,6 +165,26 @@ const wait=(ms)=>new Promise(r=>setTimeout(r,ms));
 const reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const beat=(ms)=>wait(reduce?Math.min(ms,150):ms);
 
+/* subtle synthesized sound — silence until the first user gesture */
+let AC=null;
+function ac(){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume();}catch(e){AC=null;}return AC;}
+function tone({freq=440,freq2=null,type="sine",dur=.12,gain=.04,at=.005,delay=0}){
+  const c=ac();if(!c)return;const t=c.currentTime+delay;
+  const o=c.createOscillator(),g=c.createGain();o.type=type;
+  o.frequency.setValueAtTime(freq,t);if(freq2)o.frequency.exponentialRampToValueAtTime(freq2,t+dur);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(gain,t+at);
+  g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(g).connect(c.destination);o.start(t);o.stop(t+dur+.03);
+}
+const S={
+  click(){tone({freq:1700,type:"square",dur:.045,gain:.02});tone({freq:520,type:"triangle",dur:.09,gain:.02});},
+  open(isHigh){tone({freq:isHigh?300:640,freq2:isHigh?135:520,type:"sawtooth",dur:.34,gain:.035});},
+  phone(){tone({freq:480,type:"sine",dur:.16,gain:.028});tone({freq:640,type:"sine",dur:.16,gain:.028,delay:.24});},
+  land(){tone({freq:170,freq2:85,type:"sine",dur:.6,gain:.06});tone({freq:760,type:"sine",dur:.22,gain:.025});},
+  win(){tone({freq:523,type:"sine",dur:.5,gain:.05});tone({freq:784,type:"sine",dur:.6,gain:.05,delay:.12});},
+  loss(){tone({freq:300,freq2:150,type:"sine",dur:.7,gain:.045});},
+};
+
 let sessionId=null, prevStatus=null, railBuilt=false, refused=[];
 const valNodes=new Map();
 const railL=document.getElementById("railL"),railR=document.getElementById("railR");
@@ -164,7 +196,7 @@ async function start(){document.body.className="";railBuilt=false;refused=[];rai
 async function act(a,p){const d=await post("/api/act",{session_id:sessionId,action:a,params:p||{}});render(d.view);}
 let busy=false;
 async function openCase(n){
-  if(busy)return;busy=true;
+  if(busy)return;busy=true;S.click();
   try{
     const d=await post("/api/act",{session_id:sessionId,action:"open_briefcase",params:{number:n}});
     const view=d.view,opened=view.opened_briefcases.find(o=>o.number===n);
@@ -177,6 +209,7 @@ async function openCase(n){
   }finally{busy=false;}
 }
 async function revealOpened(n,value,isHigh){
+  S.open(isHigh);
   focal.innerHTML="";
   const box=el("div","opened land");
   box.appendChild(el("div","opened-num","maleta "+n));
@@ -226,7 +259,7 @@ function sceneChoose(view){
     el("div","title","Escolha a maleta que será <span class='gold'>sua</span>."),
     el("div","lead","Ela ficará protegida até o fim. Ninguém sabe o que há dentro — nem você."));
   const grid=el("div","cases rise");
-  for(let n=1;n<=26;n++){const c=el("div","case",String(n));c.onclick=()=>act("select_briefcase",{number:n});grid.appendChild(c);}
+  for(let n=1;n<=26;n++){const c=el("div","case",String(n));c.onclick=()=>{S.click();act("select_briefcase",{number:n});};grid.appendChild(c);}
   focal.appendChild(grid);
 }
 function sceneHunt(view){
@@ -248,20 +281,21 @@ function sceneEndgame(view){
   focal.append(el("div","kicker","restam duas maletas"),
     el("div","title","Ficar com a sua… ou <span class='gold'>trocar</span>?"));
   const row=el("div","choices fade-in");
-  const t=el("button","act primary","Trocar");t.onclick=()=>act("decide_swap",{swap:true});
-  const m=el("button","act","Manter");m.onclick=()=>act("decide_swap",{swap:false});
+  const t=el("button","act primary","Trocar");t.onclick=()=>{S.click();act("decide_swap",{swap:true});};
+  const m=el("button","act","Manter");m.onclick=()=>{S.click();act("decide_swap",{swap:false});};
   row.append(t,m);focal.appendChild(row);
 }
 
 function buildOffer(view,animate){
-  setMood(null);focal.innerHTML="";
+  setMood(null);if(animate)S.land();focal.innerHTML="";
   focal.append(el("div","kicker","a oferta do banqueiro"),
     el("div","offer amount gold "+(animate?"land":"fade-in"),money(view.current_offer)),
     el("div","lead"+(animate?" fade-in":""),"Vale a certeza… ou você acredita na sua maleta?"));
   const row=el("div","choices"+(animate?" fade-in":""));
-  const topa=el("button","act primary","Topa");topa.onclick=()=>act("decide",{accept:true});
+  const topa=el("button","act primary","Topa");
+  topa.onclick=()=>{S.click();act("decide",{accept:true});};
   const nao=el("button","act ghost","Não topa");
-  nao.onclick=()=>{refused.push(Number(view.current_offer));act("decide",{accept:false});};
+  nao.onclick=()=>{S.click();refused.push(Number(view.current_offer));act("decide",{accept:false});};
   row.append(topa,nao);focal.appendChild(row);
   if(refused.length)focal.appendChild(ghostsEl());
 }
@@ -277,7 +311,7 @@ function pickTwo(a){const x=a[Math.floor(Math.random()*a.length)];let y=x;
   while(y===x)y=a[Math.floor(Math.random()*a.length)];return[x,y];}
 async function sayLine(text){focal.innerHTML="";focal.appendChild(el("div","kicker pulse",text));await beat(1500);}
 async function playOffer(view){
-  setMood("tense");
+  setMood("tense");S.phone();
   const[l1,l2]=pickTwo(OFFER_LINES);
   await sayLine(l1);await sayLine(l2);   /* the wait: the Banker builds tension, never math */
   setMood(null);buildOffer(view,true);   /* then the number lands; the board stays for comparison */
@@ -292,7 +326,9 @@ function revealMood(view){
   return{mood:"cool",gold:false,head:"Dessa vez o Banqueiro venceu."};
 }
 function buildReveal(view,animate){
-  const r=view.official_result,m=revealMood(view);setMood(m.mood);focal.innerHTML="";
+  const r=view.official_result,m=revealMood(view);setMood(m.mood);
+  if(animate){(m.mood==="cool"||m.mood==="floor")?S.loss():S.win();}
+  focal.innerHTML="";
   const mine=myCaseEl(view,true);if(mine)focal.appendChild(mine);
   focal.append(el("div","kicker","você levou"),
     el("div","offer amount "+(m.gold?"gold":"sober")+" "+(animate?"land":"fade-in"),money(r.amount_received)),
@@ -302,8 +338,8 @@ function buildReveal(view,animate){
     focal.appendChild(el("div","lead fade-in",
       `Se tivesse seguido: ${money(s.hypothetical)} — ${s.hypothetical_is_higher?"teria ganhado mais.":"você fez bem em aceitar."}`));}
   const row=el("div","choices fade-in");
-  if(view.available_actions.includes("simulate")){const b=el("button","act","Ver o que teria acontecido");b.onclick=()=>act("simulate",{});row.appendChild(b);}
-  const again=el("button","act ghost","Jogar de novo");again.onclick=()=>start();row.appendChild(again);
+  if(view.available_actions.includes("simulate")){const b=el("button","act","Ver o que teria acontecido");b.onclick=()=>{S.click();act("simulate",{});};row.appendChild(b);}
+  const again=el("button","act ghost","Jogar de novo");again.onclick=()=>{S.click();start();};row.appendChild(again);
   focal.appendChild(row);
 }
 async function playReveal(view){
