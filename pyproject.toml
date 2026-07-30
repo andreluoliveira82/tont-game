@@ -4,7 +4,14 @@ version = "0.1.0"
 description = "Implementação digital do jogo Topa ou Não Topa (CLI)."
 readme = "README.md"
 requires-python = ">=3.13"
+license = { text = "MIT" }
+authors = [
+    { name = "André Luiz de Oliveira", email = "andreluoliveira@outlook.com" },
+]
 dependencies = []
+
+[project.urls]
+Repository = "https://github.com/andreluoliveira82/tont-game"
 
 [project.scripts]
 tont-game = "tont_game.__main__:main"
