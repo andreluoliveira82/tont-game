@@ -67,6 +67,8 @@
   .kicker{color:var(--muted);font-family:ui-sans-serif,system-ui,sans-serif;font-size:.78rem;
     letter-spacing:.3em;text-transform:uppercase;max-width:30ch;}
   .title{font-size:clamp(1.4rem,4.6vw,2.3rem);line-height:1.15;max-width:16ch;}
+  .logo{font-size:clamp(2rem,9vw,4.4rem);line-height:1.04;letter-spacing:.02em;font-weight:600;
+    max-width:13ch;text-shadow:0 0 70px rgba(232,200,119,.25);}
   .lead{color:var(--muted);max-width:34ch;font-size:.98rem;line-height:1.55;}
   .amount{font-variant-numeric:tabular-nums;letter-spacing:.01em;}
   .gold{color:var(--gold);} .sober{color:var(--ink);}
@@ -208,7 +210,15 @@ const focal=document.getElementById("focal"),hud=document.getElementById("hud"),
 
 async function post(p,d){const r=await fetch(p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(d||{})});return r.json();}
 async function start(){document.body.className="";railBuilt=false;refused=[];railL.innerHTML="";railR.innerHTML="";valNodes.clear();
-  const d=await post("/api/start",{});sessionId=d.session_id;prevStatus=null;render(d.view);}
+  const d=await post("/api/start",{});sessionId=d.session_id;prevStatus=null;
+  await intro();render(d.view);}
+async function intro(){
+  setMood(null);focal.innerHTML="";
+  focal.appendChild(el("div","logo rise","Topa <span class='gold'>ou não</span> Topa"));
+  await beat(1700);
+  focal.appendChild(el("div","kicker fade-in","uma decisão pode valer tudo"));
+  await beat(1300);
+}
 async function act(a,p){const d=await post("/api/act",{session_id:sessionId,action:a,params:p||{}});render(d.view);}
 let busy=false;
 async function openCase(n){
