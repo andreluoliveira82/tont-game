@@ -13,10 +13,35 @@ from uuid import UUID, uuid4
 
 import pytest
 
+from tont_game.domain.history.game_record import GameRecord
+from tont_game.domain.history.repository import GameHistoryError, GameHistorySummary
 from tont_game.domain.services.banker import DefaultBankerStrategy
 from tont_game.interface_adapters.cli.controller import CliController
 
 T = TypeVar("T")
+
+
+class FakeHistoryRepository:
+    """In-memory repository double that records what would be persisted."""
+
+    def __init__(self) -> None:
+        self.saved: list[GameRecord] = []
+
+    def save(self, record: GameRecord) -> None:
+        self.saved.append(record)
+
+    def list_summaries(self) -> list[GameHistorySummary]:
+        return []
+
+
+class FailingHistoryRepository:
+    """Repository double that always fails, to exercise graceful degradation."""
+
+    def save(self, record: GameRecord) -> None:
+        raise GameHistoryError("boom")
+
+    def list_summaries(self) -> list[GameHistorySummary]:
+        raise GameHistoryError("boom")
 
 
 class FakeConsole:
@@ -53,7 +78,12 @@ class IdentityRandomSource:
         return list(items)
 
 
-def build_controller(console: FakeConsole, *, seed: int | None = None) -> CliController:
+def build_controller(
+    console: FakeConsole,
+    *,
+    seed: int | None = None,
+    history_repository: object | None = None,
+) -> CliController:
     return CliController(
         console=console,
         clock=FakeClock(),
@@ -61,6 +91,7 @@ def build_controller(console: FakeConsole, *, seed: int | None = None) -> CliCon
         random_source=IdentityRandomSource(),
         banker_strategy=DefaultBankerStrategy(),
         seed=seed,
+        history_repository=history_repository,  # type: ignore[arg-type]
     )
 
 
@@ -68,9 +99,16 @@ def build_controller(console: FakeConsole, *, seed: int | None = None) -> CliCon
 def run_cli():
     """Return a function that runs a full CLI game with scripted input."""
 
-    def _run(inputs: Sequence[str], *, seed: int | None = None) -> FakeConsole:
+    def _run(
+        inputs: Sequence[str],
+        *,
+        seed: int | None = None,
+        history_repository: object | None = None,
+    ) -> FakeConsole:
         console = FakeConsole(inputs)
-        build_controller(console, seed=seed).run()
+        build_controller(
+            console, seed=seed, history_repository=history_repository
+        ).run()
         return console
 
     return _run
@@ -84,3 +122,15 @@ def make_controller():
         return build_controller(console, seed=seed)  # type: ignore[arg-type]
 
     return _make
+
+
+@pytest.fixture
+def fake_history_repo() -> FakeHistoryRepository:
+    """A repository double that records saved games in memory."""
+    return FakeHistoryRepository()
+
+
+@pytest.fixture
+def failing_history_repo() -> FailingHistoryRepository:
+    """A repository double that always fails, for graceful-degradation tests."""
+    return FailingHistoryRepository()

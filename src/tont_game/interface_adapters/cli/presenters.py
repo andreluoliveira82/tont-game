@@ -178,6 +178,14 @@ def simulation_comparison(simulation: SimulationResult) -> str:
     )
 
 
+def history_saved() -> str:
+    return "Partida registrada no seu histórico."
+
+
+def history_save_failed() -> str:
+    return "Não foi possível registrar esta partida no histórico."
+
+
 def aborted() -> str:
     return "\nPartida encerrada. Até a próxima!"
 

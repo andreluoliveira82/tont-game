@@ -234,6 +234,28 @@ def test_endgame_narration_is_deterministic(run_cli) -> None:
     assert first == second
 
 
+def test_finished_game_is_saved_to_history(run_cli, fake_history_repo) -> None:
+    console = run_cli(topa_round_one_inputs("n"), history_repository=fake_history_repo)
+    assert len(fake_history_repo.saved) == 1
+    assert fake_history_repo.saved[0].official_result is not None
+    assert "registrada no seu histórico" in console.text
+
+
+def test_history_save_failure_degrades_gracefully(
+    run_cli, failing_history_repo
+) -> None:
+    console = run_cli(
+        topa_round_one_inputs("n"), history_repository=failing_history_repo
+    )
+    assert "Não foi possível registrar" in console.text
+    assert "TOPOU" in console.text  # the game still completed normally
+
+
+def test_without_repository_there_is_no_history_line(run_cli) -> None:
+    console = run_cli(topa_round_one_inputs("n"))
+    assert "histórico" not in console.text
+
+
 def test_eof_ends_gracefully(make_controller) -> None:
     console = _EofConsole()
     make_controller(console).run()

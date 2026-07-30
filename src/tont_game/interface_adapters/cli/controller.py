@@ -12,6 +12,7 @@ from tont_game.application.use_cases.process_banker_offer import ProcessBankerOf
 from tont_game.application.use_cases.run_post_game_simulation import (
     RunPostGameSimulation,
 )
+from tont_game.application.use_cases.save_finished_game import SaveFinishedGame
 from tont_game.application.use_cases.select_initial_briefcase import (
     SelectInitialBriefcase,
 )
@@ -19,6 +20,10 @@ from tont_game.application.use_cases.start_game import StartGame
 from tont_game.domain.clock import Clock
 from tont_game.domain.errors import DomainError
 from tont_game.domain.history.records import Decision, EndingType
+from tont_game.domain.history.repository import (
+    GameHistoryError,
+    GameHistoryRepository,
+)
 from tont_game.domain.identifiers import GameIdGenerator
 from tont_game.domain.randomness import RandomSource
 from tont_game.domain.services.banker import BankerStrategy
@@ -46,6 +51,7 @@ class CliController:
         random_source: RandomSource,
         banker_strategy: BankerStrategy,
         seed: int | None = None,
+        history_repository: GameHistoryRepository | None = None,
     ) -> None:
         self._console = console
         self._clock = clock
@@ -53,6 +59,7 @@ class CliController:
         self._random_source = random_source
         self._strategy = banker_strategy
         self._seed = seed
+        self._history_repository = history_repository
 
     def run(self) -> None:
         try:
@@ -80,7 +87,21 @@ class CliController:
         else:
             self._present_topa_result(session)
 
+        self._save_history(session)
         self._maybe_simulate(session)
+
+    def _save_history(self, session: GameSession) -> None:
+        # Persistence is optional and must never break the game: absent a
+        # repository or on any storage failure, the game continues normally.
+        if self._history_repository is None:
+            return
+        if session.game_record.official_result is None:
+            return
+        try:
+            SaveFinishedGame(self._history_repository).execute(session.game_record)
+            self._console.write(presenters.history_saved())
+        except GameHistoryError:
+            self._console.write(presenters.history_save_failed())
 
     def _select_initial_briefcase(self, session: GameSession) -> None:
         while True:
