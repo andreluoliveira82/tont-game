@@ -463,19 +463,36 @@ Principais entregas:
 
 ---
 
-# Roadmap 2.0 — Fases futuras (propostas, NÃO aprovadas)
+# Fase 12 — Conclusão da experiência de histórico
 
-As Fases 0–10.5 constituem o **Ciclo 1**; a **Fase 11** (acima) abriu o Roadmap 2.0
-e está concluída. As fases a seguir são **propostas de evolução — ainda NÃO
-aprovadas** para implementação; cada uma exige autorização explícita e não deve
-ser iniciada automaticamente.
+**Status:** ✅ Concluída — release `1.2.0`. Extensão natural da leitura da Fase 11 (sem novo ADR).
 
-- **Fase 12 (proposta) — Distribuição para jogadores reais:** empacotamento/publicação do console script já existente, para uso por não-desenvolvedores.
-- **Fase 13 (proposta) — Superfície de configuração:** expor valores/sequência/percentuais/estratégia (já injetáveis no código), orientada a um driver concreto.
-- **Fase 14 (proposta) — Analytics / visão administrativa:** análise do histórico acumulado; depende da Fase 11 e de volume de dados reais.
-- **Fase 15 (proposta) — GUI:** segunda interface gráfica reutilizando o núcleo, somente com demanda validada.
+Completa a "memória" iniciada na Fase 11: além de listar, o jogador pode **inspecionar uma partida** em detalhe. Escopo **mínimo** — apenas `history show`; **sem** stats, export ou replay. Nada nas regras, no domínio ou na simulação mudou.
 
-**Backlog não priorizado:** simulação progressiva/retrospectiva pós-Topa; estratégias alternativas do Banqueiro; reconfiguração estrutural das regras; internacionalização; remoção do `GameStatus.FINAL_REVEAL` (dívida cosmética).
+Principais entregas:
+
+- **Read models `GameHistoryDetail`/`GameHistoryRoundDetail`** e o método `get(game_id)` na porta `GameHistoryRepository`.
+- **Desserialização completa** sobre o schema público, com **guarda de versão desconhecida (futura)** tratada graciosamente (em `get` e na listagem).
+- Caso de uso fino `GetGameHistoryDetail`.
+- **Comando `tont-game history show <id>`**, com id inválido, partida inexistente e falha de leitura tratados graciosamente; `history` (listar) e jogar permanecem inalterados.
+
+**Critério de saída:** uma partida persistida pode ser inspecionada em detalhe pela CLI, reaproveitando a infraestrutura da Fase 11, sem tocar regras ou arquitetura. ✅ Atendido.
+
+---
+
+# Roadmap 2.1 — Fases futuras (propostas, NÃO aprovadas)
+
+As Fases 0–10.5 constituem o **Ciclo 1**; as **Fases 11 e 12** (acima) abriram o
+Roadmap 2.0/2.1 e estão concluídas. As fases a seguir são **propostas de evolução
+— ainda NÃO aprovadas** para implementação; cada uma exige autorização explícita
+e não deve ser iniciada automaticamente.
+
+- **Fase 13 (proposta) — Distribuição para jogadores reais:** empacotamento/publicação do console script já existente, para uso por não-desenvolvedores.
+- **Fase 14 (proposta) — Superfície de configuração:** expor valores/sequência/percentuais/estratégia (já injetáveis no código), orientada a um driver concreto.
+- **Fase 15 (proposta) — Analytics / visão administrativa:** análise do histórico acumulado; depende de volume de dados reais (a fundação de leitura já existe desde a Fase 12).
+- **Fase 16 (proposta) — GUI:** segunda interface gráfica reutilizando o núcleo, somente com demanda validada.
+
+**Backlog não priorizado:** `history stats`/`export`; simulação progressiva/retrospectiva pós-Topa; estratégias alternativas do Banqueiro; reconfiguração estrutural das regras; estratégia de migração de schema; observabilidade/logging; internacionalização; remoção do `GameStatus.FINAL_REVEAL` (dívida cosmética).
 
 ---
 

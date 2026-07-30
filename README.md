@@ -41,7 +41,9 @@ A **Fase 10** foi uma etapa de **avaliação e decisão** (sem implementação),
 
 Com a **Fase 10.5** encerrou-se o **primeiro ciclo de desenvolvimento** (release `1.0.0`): uma versão jogável e estável pelo terminal, com **toda a suíte de testes automatizados passando**.
 
-A **Fase 11** (release `1.1.0`, primeira do **Roadmap 2.0**) adicionou **persistência de partidas concluídas e histórico entre execuções** como capacidade **opcional e aditiva**: cada partida é registrada automaticamente (um JSON por partida, em diretório resolvido pela infraestrutura) e pode ser revista com `tont-game history`. A persistência **nunca** impede o jogo de funcionar — falhas degradam graciosamente. O domínio permanece desacoplado da tecnologia de armazenamento (port `GameHistoryRepository`; ver [ADR 0007](docs/decisions/0007-persistencia-do-historico.md)). Ainda **não** há analytics nem GUI. As demais evoluções seguem no **Roadmap 2.0** (Fases 12+, ainda não iniciadas) — ver [`roadmap.md`](docs/roadmap.md).
+A **Fase 11** (release `1.1.0`, primeira do **Roadmap 2.0**) adicionou **persistência de partidas concluídas e histórico entre execuções** como capacidade **opcional e aditiva**: cada partida é registrada automaticamente (um JSON por partida, em diretório resolvido pela infraestrutura). A persistência **nunca** impede o jogo de funcionar — falhas degradam graciosamente. O domínio permanece desacoplado da tecnologia de armazenamento (port `GameHistoryRepository`; ver [ADR 0007](docs/decisions/0007-persistencia-do-historico.md)).
+
+A **Fase 12** (release `1.2.0`) completou a experiência de histórico: além de listar (`tont-game history`), o jogador pode **inspecionar uma partida** em detalhe com `tont-game history show <id>`. Ainda **não** há analytics nem GUI. As demais evoluções seguem no **Roadmap 2.1** (Fases 13+, ainda não iniciadas) — ver [`roadmap.md`](docs/roadmap.md).
 
 ## Requisitos
 
@@ -72,6 +74,7 @@ uv run python -m tont_game        # partida aleatória
 uv run python -m tont_game 42     # partida reproduzível (seed 42)
 uv run tont-game                  # equivalente, pelo console script (entry point)
 uv run tont-game history          # lista suas partidas anteriores
+uv run tont-game history show ID  # detalha uma partida pelo id
 ```
 
 A interface é em Português do Brasil: escolha a maleta inicial, abra maletas a cada rodada, decida **Topa/Não Topa** a cada oferta e, ao final, conduza a troca do endgame ou (após um Topa) a simulação pós-jogo. A cada rodada a CLI mostra as maletas disponíveis e um status compacto; ao final da rodada, um bloco de decisão reúne a oferta e a lista completa dos valores ainda em jogo.

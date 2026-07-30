@@ -113,7 +113,8 @@ tont-game/
 │       │       ├── decide_final_swap.py         # (Fase 5.5)
 │       │       ├── run_post_game_simulation.py  # (Fase 6)
 │       │       ├── save_finished_game.py        # (Fase 11)
-│       │       └── list_game_history.py         # (Fase 11)
+│       │       ├── list_game_history.py         # (Fase 11)
+│       │       └── get_game_history_detail.py   # (Fase 12)
 │       │
 │       ├── interface_adapters/       # (Fase 8)
 │       │   └── cli/
