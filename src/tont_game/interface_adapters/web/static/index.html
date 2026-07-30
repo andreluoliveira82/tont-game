@@ -109,6 +109,18 @@
   button.act.ghost{opacity:.72;}
   .err{color:var(--danger);font-family:ui-sans-serif,system-ui,sans-serif;font-size:.8rem;
     min-height:1.1em;text-align:center;}
+  .ghosts{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center;
+    opacity:.55;font-family:ui-sans-serif,system-ui,sans-serif;}
+  .ghost-label{color:var(--faint);font-size:.62rem;letter-spacing:.24em;text-transform:uppercase;}
+  .ghost{font-size:.72rem;color:var(--muted);font-variant-numeric:tabular-nums;
+    border:1px solid rgba(255,255,255,.07);border-radius:999px;padding:4px 11px;
+    background:rgba(255,255,255,.02);}
+  .opened{display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .opened-num{color:var(--faint);font-family:ui-sans-serif,system-ui,sans-serif;font-size:.68rem;
+    letter-spacing:.28em;text-transform:uppercase;}
+  .opened-val{font-variant-numeric:tabular-nums;font-weight:600;color:var(--muted);
+    font-size:clamp(1.7rem,8vw,3.2rem);}
+  .opened-val.bad{color:var(--danger);}
 
   .fade-in{animation:fade 520ms var(--ease) both;}
   @keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
@@ -141,15 +153,37 @@ const wait=(ms)=>new Promise(r=>setTimeout(r,ms));
 const reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const beat=(ms)=>wait(reduce?Math.min(ms,150):ms);
 
-let sessionId=null, prevStatus=null, railBuilt=false;
+let sessionId=null, prevStatus=null, railBuilt=false, refused=[];
 const valNodes=new Map();
 const railL=document.getElementById("railL"),railR=document.getElementById("railR");
 const focal=document.getElementById("focal"),hud=document.getElementById("hud"),errBox=document.getElementById("err");
 
 async function post(p,d){const r=await fetch(p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(d||{})});return r.json();}
-async function start(){document.body.className="";railBuilt=false;railL.innerHTML="";railR.innerHTML="";valNodes.clear();
+async function start(){document.body.className="";railBuilt=false;refused=[];railL.innerHTML="";railR.innerHTML="";valNodes.clear();
   const d=await post("/api/start",{});sessionId=d.session_id;prevStatus=null;render(d.view);}
 async function act(a,p){const d=await post("/api/act",{session_id:sessionId,action:a,params:p||{}});render(d.view);}
+let busy=false;
+async function openCase(n){
+  if(busy)return;busy=true;
+  try{
+    const d=await post("/api/act",{session_id:sessionId,action:"open_briefcase",params:{number:n}});
+    const view=d.view,opened=view.opened_briefcases.find(o=>o.number===n);
+    updateRails(view);                                   /* the value dies in the rail */
+    if(opened){
+      const max=Math.max(...allValues(view));
+      await revealOpened(n,opened.value,Number(opened.value)>=max*0.5);
+    }
+    render(view);                                        /* settle: next open, or the offer */
+  }finally{busy=false;}
+}
+async function revealOpened(n,value,isHigh){
+  focal.innerHTML="";
+  const box=el("div","opened land");
+  box.appendChild(el("div","opened-num","maleta "+n));
+  box.appendChild(el("div","opened-val amount"+(isHigh?" bad":""),money(value)));
+  focal.appendChild(box);
+  await beat(760);                                       /* the weight of the revelation */
+}
 
 function allValues(view){
   const alive=view.remaining_values.map(Number);
@@ -203,7 +237,7 @@ function sceneHunt(view){
   const grid=el("div","cases fade-in"),open=new Set(view.available_briefcases);
   for(let n=1;n<=26;n++){
     const isMine=view.player_briefcase&&view.player_briefcase.number===n;
-    if(open.has(n)){const c=el("div","case",String(n));c.onclick=()=>act("open_briefcase",{number:n});grid.appendChild(c);}
+    if(open.has(n)){const c=el("div","case",String(n));c.onclick=()=>openCase(n);grid.appendChild(c);}
     else grid.appendChild(el("div","case "+(isMine?"mine":"spent"),isMine?"★":""));
   }
   focal.appendChild(grid);
@@ -226,13 +260,27 @@ function buildOffer(view,animate){
     el("div","lead"+(animate?" fade-in":""),"Vale a certeza… ou você acredita na sua maleta?"));
   const row=el("div","choices"+(animate?" fade-in":""));
   const topa=el("button","act primary","Topa");topa.onclick=()=>act("decide",{accept:true});
-  const nao=el("button","act ghost","Não topa");nao.onclick=()=>act("decide",{accept:false});
+  const nao=el("button","act ghost","Não topa");
+  nao.onclick=()=>{refused.push(Number(view.current_offer));act("decide",{accept:false});};
   row.append(topa,nao);focal.appendChild(row);
+  if(refused.length)focal.appendChild(ghostsEl());
 }
+function ghostsEl(){
+  const wrap=el("div","ghosts fade-in");
+  wrap.appendChild(el("div","ghost-label","você já recusou"));
+  refused.forEach(v=>wrap.appendChild(el("div","ghost",money(v))));
+  return wrap;
+}
+const OFFER_LINES=["o telefone toca…","o banqueiro está pensando…","o silêncio pesa no estúdio…",
+  "uma pausa longa…","ele parece confiante…","o estúdio prende a respiração…","ele não tem pressa…"];
+function pickTwo(a){const x=a[Math.floor(Math.random()*a.length)];let y=x;
+  while(y===x)y=a[Math.floor(Math.random()*a.length)];return[x,y];}
+async function sayLine(text){focal.innerHTML="";focal.appendChild(el("div","kicker pulse",text));await beat(1500);}
 async function playOffer(view){
-  setMood("tense");focal.innerHTML="";
-  focal.appendChild(el("div","kicker pulse","o banqueiro está pensando…"));
-  await beat(1900);setMood(null);buildOffer(view,true);
+  setMood("tense");
+  const[l1,l2]=pickTwo(OFFER_LINES);
+  await sayLine(l1);await sayLine(l2);   /* the wait: the Banker builds tension, never math */
+  setMood(null);buildOffer(view,true);   /* then the number lands; the board stays for comparison */
 }
 
 function revealMood(view){
