@@ -151,6 +151,10 @@
   .opened-val.bad{color:var(--danger);}
   .curtain{color:var(--faint);font-family:ui-sans-serif,system-ui,sans-serif;font-size:.64rem;
     letter-spacing:.42em;text-transform:uppercase;margin-top:2px;}
+  .verdict{font-family:ui-sans-serif,system-ui,sans-serif;font-weight:700;letter-spacing:.2em;
+    text-transform:uppercase;font-size:clamp(1rem,4.4vw,1.7rem);}
+  .verdict.win{color:var(--gold);text-shadow:0 0 26px rgba(232,200,119,.4);}
+  .verdict.lose{color:var(--danger);text-shadow:0 0 22px rgba(201,115,107,.32);}
 
   .fade-in{animation:fade 520ms var(--ease) both;}
   @keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
@@ -200,7 +204,8 @@ const S={
   phone(){tone({freq:480,type:"sine",dur:.16,gain:.028});tone({freq:640,type:"sine",dur:.16,gain:.028,delay:.24});},
   land(){tone({freq:170,freq2:85,type:"sine",dur:.6,gain:.06});tone({freq:760,type:"sine",dur:.22,gain:.025});},
   win(){tone({freq:523,type:"sine",dur:.5,gain:.05});tone({freq:784,type:"sine",dur:.6,gain:.05,delay:.12});},
-  loss(){tone({freq:300,freq2:150,type:"sine",dur:.7,gain:.045});},
+  triumph(){[523,659,784,1047].forEach((f,i)=>tone({freq:f,type:"sine",dur:.6,gain:.05,delay:i*.13}));},
+  loss(){tone({freq:300,freq2:150,type:"sine",dur:.7,gain:.045});tone({freq:110,type:"sine",dur:.9,gain:.04,delay:.05});},
 };
 
 let sessionId=null, prevStatus=null, railBuilt=false, refused=[];
@@ -354,13 +359,25 @@ async function playOffer(view){
   setMood(null);buildOffer(view,true);               /* the number lands; the board stays for comparison */
 }
 
-function revealMood(view){
+function revealStory(view){
   const r=view.official_result,got=Number(r.amount_received),own=Number(r.player_briefcase_value);
   const all=allValues(view),mx=Math.max(...all),mn=Math.min(...all);
-  if(got===mx)return{mood:"apotheosis",gold:true,head:"O MAIOR prêmio possível. Não dá pra fazer melhor."};
-  if(got===mn)return{mood:"floor",gold:false,head:"O piso da mesa — mas você encarou o Banqueiro até o fim."};
-  if(got>=own)return{mood:"warm",gold:true,head:"Você levou a melhor."};
-  return{mood:"cool",gold:false,head:"Dessa vez o Banqueiro venceu."};
+  const maxRef=refused.length?Math.max(...refused):0;      /* the biggest offer he passed up */
+  const gambled=r.ending_type!=="OFFER_ACCEPTED";          /* did he risk it to the end? */
+  if(got===mx)return{mood:"apotheosis",gold:true,tag:"vitória milionária",
+    head:"O MAIOR prêmio da mesa. Não dá pra fazer melhor do que isso."};
+  if(maxRef>got*1.6)return{mood:"floor",gold:false,tag:"que tragédia",
+    head:`Você recusou ${money(maxRef)}… e saiu com ${money(got)}.`};
+  if(got===mn)return{mood:"floor",gold:false,tag:"o fundo da mesa",
+    head:"O piso da tabela — mas você encarou o Banqueiro até o fim."};
+  if(gambled&&got>=Math.max(own,maxRef))return{mood:"apotheosis",gold:true,tag:"que coragem",
+    head:"Você arriscou até o fim — e a aposta valeu."};
+  if(!gambled&&own>got*1.6)return{mood:"cool",gold:false,tag:"o banqueiro venceu",
+    head:`A sua maleta escondia ${money(own)}. Ele te convenceu a sair cedo.`};
+  if(maxRef>got)return{mood:"cool",gold:false,tag:"ficou o gosto",
+    head:`Já teve ${money(maxRef)} na mão… e levou ${money(got)}.`};
+  if(got>=own)return{mood:"warm",gold:true,tag:"boa saída",head:"Você soube a hora de sair."};
+  return{mood:"warm",gold:true,tag:"fim de jogo",head:"Uma partida e tanto."};
 }
 function revealControls(view){
   const row=el("div","choices fade-in");
@@ -369,20 +386,22 @@ function revealControls(view){
   return row;
 }
 async function buildReveal(view,animate){
-  const r=view.official_result,m=revealMood(view);
+  const r=view.official_result,m=revealStory(view);
   if(animate){                                   /* the held breath before the truth */
     setMood("tense");focal.innerHTML="";
     focal.appendChild(el("div","kicker pulse","o momento da verdade…"));
     await beat(2300);
   }
   setMood(m.mood);                               /* the world transforms with the outcome */
-  if(animate)((m.mood==="cool"||m.mood==="floor")?S.loss():S.win());
+  if(animate)(m.mood==="apotheosis"?S.triumph():(m.mood==="warm"?S.win():S.loss()));
   focal.innerHTML="";
   const mine=myCaseEl(view,true);if(mine)focal.appendChild(mine);
   focal.append(el("div","kicker","você levou"),
     el("div","offer amount "+(m.gold?"gold":"sober")+" "+(animate?"land":"fade-in"),money(r.amount_received)));
-  if(animate)await beat(1200);
-  focal.appendChild(el("div","lead"+(animate?" fade-in":""),m.head));
+  if(animate)await beat(1300);
+  focal.appendChild(el("div","verdict "+(m.gold?"win":"lose")+(animate?" fade-in":""),m.tag));
+  if(animate)await beat(650);
+  focal.appendChild(el("div","lead"+(animate?" fade-in":""),m.head));   /* the honest story */
   if(animate)await beat(900);
   focal.appendChild(el("div","lead"+(animate?" fade-in":""),`A sua maleta guardava ${money(r.player_briefcase_value)}.`));
   if(view.simulation){const s=view.simulation;
