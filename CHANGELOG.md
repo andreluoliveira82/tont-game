@@ -5,6 +5,26 @@ Todas as mudanças relevantes deste projeto são documentadas aqui.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e o projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [1.1.0] - 2026-07-29
+
+Primeira fase do Roadmap 2.0: persistência de partidas concluídas e histórico
+entre execuções, como capacidade **opcional e aditiva** (o jogo continua
+totalmente jogável sem ela).
+
+### Adicionado
+
+- Port de saída `GameHistoryRepository` (domínio), VO `GameHistorySummary` e os
+  casos de uso `SaveFinishedGame` e `ListGameHistory`.
+- Adaptador `FileGameHistoryRepository` (um JSON por partida) e um locator que
+  encapsula o diretório de dados na infraestrutura.
+- Schema JSON público e versionado (`schema_version`), desacoplado da estrutura
+  interna do `GameRecord`.
+- Salvamento automático da partida ao encerrar, com aviso discreto e
+  **degradação graciosa** em caso de falha de I/O.
+- Comando `tont-game history` para rever partidas anteriores, com despacho
+  preparado para futuros subcomandos.
+- ADR 0007 (estratégia concreta de persistência).
+
 ## [1.0.0] - 2026-07-29
 
 Primeira versão estável — encerramento do Ciclo 1 (Fases 0–10.5). Uma partida
@@ -43,4 +63,5 @@ com regras corretas e reprodutibilidade por seed.
 - As evoluções futuras estão organizadas no "Roadmap 2.0" (Fases 11+), ainda
   não aprovadas para implementação.
 
+[1.1.0]: https://github.com/andreluoliveira82/tont-game/releases/tag/v1.1.0
 [1.0.0]: https://github.com/andreluoliveira82/tont-game/releases/tag/v1.0.0
