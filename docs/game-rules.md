@@ -260,17 +260,16 @@ Fluxo:
 4. se não quiser, a experiência termina;
 5. se quiser, inicia-se a simulação pós-jogo.
 
-A simulação deve:
+**Comportamento vigente (Release 1.0.0) — cenário `CONTINUE_HOLD`:** a simulação atualmente implementada é **exclusivamente** uma derivação determinística que compara o valor oficialmente recebido com o valor que o jogador teria se tivesse recusado a oferta e mantido a própria maleta até o fim. Ela:
 
-1. utilizar exatamente a mesma distribuição de valores da partida original;
-2. partir do mesmo estado existente no momento em que a oferta foi aceita;
-3. **não** gerar uma nova partida;
-4. **não** sortear novamente os valores;
-5. **não** alterar o resultado oficial;
-6. revelar progressivamente as maletas que ainda não haviam sido abertas;
-7. revelar, ao final, o valor da maleta do jogador;
-8. quando o fluxo chegar a duas maletas, permitir simular a decisão hipotética de troca (seção 11);
-9. permitir comparar o resultado oficial com o resultado hipotético.
+1. utiliza exatamente a mesma distribuição de valores da partida original;
+2. parte do mesmo estado existente no momento em que a oferta foi aceita;
+3. **não** gera uma nova partida;
+4. **não** sorteia novamente os valores;
+5. **não** altera o resultado oficial;
+6. permite comparar o resultado oficial com o resultado hipotético.
+
+**Evolução futura (backlog — NÃO aprovada, fora da Release 1.0.0):** uma simulação **progressiva/retrospectiva** — que revelaria progressivamente as maletas ainda não abertas, revelaria ao final o valor da maleta do jogador e, ao chegar a duas maletas, permitiria simular a decisão hipotética de troca (seção 11) — permanece registrada apenas como possibilidade futura. Ela **não** foi aprovada e **não** faz parte da Release 1.0.0.
 
 A simulação é conceitualmente separada da partida oficial e não deve ser representada como continuação de uma partida encerrada. O resultado é apresentado separadamente, por exemplo:
 
