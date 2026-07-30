@@ -15,6 +15,7 @@ from tont_game.domain.errors import (
     RoundLimitExceededError,
 )
 from tont_game.domain.history.records import EndingType, OfficialResult
+from tont_game.domain.history.repository import GameHistorySummary
 from tont_game.domain.simulation.post_game_simulation import SimulationResult
 from tont_game.domain.value_objects.money import Money
 
@@ -184,6 +185,37 @@ def history_saved() -> str:
 
 def history_save_failed() -> str:
     return "Não foi possível registrar esta partida no histórico."
+
+
+_ENDING_LABELS = {
+    EndingType.OFFER_ACCEPTED: "Topa",
+    EndingType.FINAL_REVEAL_WITH_SWAP: "Troca final",
+    EndingType.FINAL_REVEAL_WITHOUT_SWAP: "Sem troca",
+}
+
+
+def history_empty() -> str:
+    return "Você ainda não tem partidas no histórico."
+
+
+def history_list(summaries: Sequence[GameHistorySummary]) -> str:
+    """List past games, most recent first (one line each)."""
+    lines = [f"Seu histórico ({len(summaries)} partida(s)):"]
+    for summary in summaries:
+        when = summary.finished_at.strftime("%d/%m/%Y %H:%M")
+        label = _ENDING_LABELS.get(summary.ending_type, summary.ending_type.value)
+        lines.append(
+            f"- {when} · {label} · levou {format_money(summary.amount_received)}"
+        )
+    return "\n".join(lines)
+
+
+def history_unavailable() -> str:
+    return "Não foi possível ler o seu histórico agora."
+
+
+def history_unknown_subcommand(name: str) -> str:
+    return f"Subcomando de histórico desconhecido: {name}"
 
 
 def aborted() -> str:

@@ -17,8 +17,22 @@ from tont_game.domain.history.game_record import GameRecord
 from tont_game.domain.history.repository import GameHistoryError, GameHistorySummary
 from tont_game.domain.services.banker import DefaultBankerStrategy
 from tont_game.interface_adapters.cli.controller import CliController
+from tont_game.interface_adapters.cli.history_controller import HistoryController
 
 T = TypeVar("T")
+
+
+class _StubHistoryRepository:
+    """Returns a fixed list of summaries (for listing tests)."""
+
+    def __init__(self, summaries: Sequence[GameHistorySummary]) -> None:
+        self._summaries = list(summaries)
+
+    def save(self, record: GameRecord) -> None:  # pragma: no cover - unused here
+        raise NotImplementedError
+
+    def list_summaries(self) -> list[GameHistorySummary]:
+        return list(self._summaries)
 
 
 class FakeHistoryRepository:
@@ -134,3 +148,20 @@ def fake_history_repo() -> FakeHistoryRepository:
 def failing_history_repo() -> FailingHistoryRepository:
     """A repository double that always fails, for graceful-degradation tests."""
     return FailingHistoryRepository()
+
+
+@pytest.fixture
+def run_history():
+    """Run the history-listing command and return the recording console."""
+
+    def _run(
+        summaries: Sequence[GameHistorySummary] = (), *, failing: bool = False
+    ) -> FakeConsole:
+        console = FakeConsole([])
+        repository = (
+            FailingHistoryRepository() if failing else _StubHistoryRepository(summaries)
+        )
+        HistoryController(console, repository).list()  # type: ignore[arg-type]
+        return console
+
+    return _run
