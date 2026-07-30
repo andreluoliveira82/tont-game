@@ -5,6 +5,18 @@ Todas as mudanças relevantes deste projeto são documentadas aqui.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e o projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [1.3.0] - 2026-07-30
+
+Usabilidade e instalabilidade da CLI (Roadmap 2.1, Fase 13): descoberta dos
+comandos e instalação para não-desenvolvedores. Publicação no PyPI adiada.
+
+### Adicionado
+
+- `tont-game --help`/`-h` cobrindo toda a superfície pública (jogar/seed,
+  `history`, `history show`, `--version`, `--help`); `--version`/`-v`;
+  `history --help`.
+- Documentação de instalação via `pipx`/`uvx` e Quick Start no README.
+
 ## [1.2.0] - 2026-07-29
 
 Conclusão da experiência de histórico (Roadmap 2.1, Fase 12): além de listar, é
@@ -77,6 +89,7 @@ com regras corretas e reprodutibilidade por seed.
 - As evoluções futuras estão organizadas no "Roadmap 2.0" (Fases 11+), ainda
   não aprovadas para implementação.
 
+[1.3.0]: https://github.com/andreluoliveira82/tont-game/releases/tag/v1.3.0
 [1.2.0]: https://github.com/andreluoliveira82/tont-game/releases/tag/v1.2.0
 [1.1.0]: https://github.com/andreluoliveira82/tont-game/releases/tag/v1.1.0
 [1.0.0]: https://github.com/andreluoliveira82/tont-game/releases/tag/v1.0.0
