@@ -7,283 +7,255 @@
 <style>
   :root{
     --bg:#080809; --bg-2:#0e0e12; --ink:#efe9dc; --muted:#8b8578; --faint:#57534a;
-    --gold:#e8c877; --gold-deep:#b98c34; --gold-soft:rgba(232,200,119,.14);
-    --loss:#6f6a60; --danger:#c9736b;
-    --edge:rgba(232,200,119,.16); --panel:rgba(255,255,255,.03);
-    --focus-glow:0 0 60px rgba(232,200,119,.10);
-    --t-slow:900ms; --t-med:520ms; --ease:cubic-bezier(.2,.7,.2,1);
+    --gold:#e8c877; --gold-deep:#b98c34; --danger:#c9736b;
+    --edge:rgba(232,200,119,.16);
+    --ease:cubic-bezier(.2,.7,.2,1);
     font-synthesis:none; -webkit-text-size-adjust:100%;
   }
   *{box-sizing:border-box;}
   html,body{height:100%;}
   body{
-    margin:0; background:
-      radial-gradient(120% 80% at 50% 8%, #17140f 0%, var(--bg-2) 40%, var(--bg) 100%);
-    color:var(--ink);
+    margin:0; color:var(--ink);
+    background:radial-gradient(120% 80% at 50% 6%, #141109 0%, var(--bg-2) 42%, var(--bg) 100%);
     font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
-    min-height:100dvh; display:flex; flex-direction:column; overflow-x:hidden;
-    letter-spacing:.2px;
+    min-height:100dvh; display:flex; flex-direction:column; overflow-x:hidden; letter-spacing:.2px;
+    transition:background 1200ms var(--ease);
   }
-  /* stage vignette */
-  body::after{content:"";position:fixed;inset:0;pointer-events:none;
-    background:radial-gradient(140% 100% at 50% 45%, transparent 55%, rgba(0,0,0,.55) 100%);
-    z-index:5;}
+  /* warm bloom — the emotional light, animatable by mood */
+  #glow{position:fixed;inset:0;z-index:1;pointer-events:none;
+    background:radial-gradient(60% 46% at 50% 34%, rgba(232,200,119,.20), transparent 70%);
+    opacity:.5;transition:opacity 1200ms var(--ease),filter 1200ms var(--ease);}
+  body.tense #glow{opacity:.16;filter:saturate(.6);}
+  body.warm #glow{opacity:.62;}
+  body.cool #glow{opacity:.12;filter:hue-rotate(195deg) saturate(.5);}
+  body.floor #glow{opacity:.07;filter:grayscale(.6);}
+  body.apotheosis #glow{opacity:1;filter:saturate(1.2) brightness(1.15);}
+  body.cool{background:radial-gradient(120% 80% at 50% 6%, #0d1014 0%, #0b0c0f 45%, var(--bg) 100%);}
+  body.floor{background:radial-gradient(120% 80% at 50% 6%, #0f0f10 0%, #0a0a0b 45%, var(--bg) 100%);}
+  body.apotheosis{background:radial-gradient(120% 85% at 50% 4%, #221805 0%, #14100a 42%, var(--bg) 100%);}
+  /* vignette */
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:6;
+    background:radial-gradient(140% 100% at 50% 45%, transparent 55%, rgba(0,0,0,.6) 100%);}
+
   .stage{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;
     max-width:820px;width:100%;margin:0 auto;padding:clamp(16px,4vw,40px);}
-  .marquee{display:flex;justify-content:space-between;align-items:baseline;
-    color:var(--faint);font-size:.72rem;letter-spacing:.28em;text-transform:uppercase;
+  .marquee{display:flex;justify-content:space-between;align-items:baseline;color:var(--faint);
+    font-size:.72rem;letter-spacing:.28em;text-transform:uppercase;
     font-family:ui-sans-serif,system-ui,sans-serif;min-height:1.2em;}
   .marquee b{color:var(--muted);font-weight:600;}
-  .focal{flex:1;display:flex;flex-direction:column;justify-content:center;
-    align-items:center;text-align:center;gap:clamp(14px,3vw,26px);
-    padding:clamp(10px,4vh,40px) 0;transition:opacity var(--t-med) var(--ease);}
-  .focal.dim{opacity:.12;}
-  .kicker{color:var(--muted);font-family:ui-sans-serif,system-ui,sans-serif;
-    font-size:.8rem;letter-spacing:.32em;text-transform:uppercase;}
+  .focal{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;
+    text-align:center;gap:clamp(14px,3vw,26px);padding:clamp(10px,4vh,40px) 0;}
+  .kicker{color:var(--muted);font-family:ui-sans-serif,system-ui,sans-serif;font-size:.8rem;
+    letter-spacing:.32em;text-transform:uppercase;}
   .title{font-size:clamp(1.5rem,5vw,2.4rem);line-height:1.15;max-width:16ch;}
-  .lead{color:var(--muted);max-width:34ch;font-size:1rem;line-height:1.6;}
-
-  /* money */
-  .amount{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
-    letter-spacing:.01em;}
+  .lead{color:var(--muted);max-width:36ch;font-size:1.02rem;line-height:1.6;}
+  .amount{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;letter-spacing:.01em;}
   .gold{color:var(--gold);}
+  .sober{color:var(--ink);}
 
-  /* briefcases */
-  .cases{display:grid;gap:clamp(7px,1.8vw,12px);width:100%;
-    grid-template-columns:repeat(6,1fr);}
+  .cases{display:grid;gap:clamp(7px,1.8vw,12px);width:100%;grid-template-columns:repeat(6,1fr);}
   @media(max-width:520px){.cases{grid-template-columns:repeat(5,1fr);}}
-  .case{aspect-ratio:5/4;border-radius:10px;position:relative;cursor:pointer;
-    color:var(--ink);font-variant-numeric:tabular-nums;font-size:clamp(.9rem,3.4vw,1.15rem);
-    display:flex;align-items:center;justify-content:center;
+  .case{aspect-ratio:5/4;border-radius:10px;position:relative;cursor:pointer;color:var(--ink);
+    font-variant-numeric:tabular-nums;font-size:clamp(.9rem,3.4vw,1.15rem);display:flex;
+    align-items:center;justify-content:center;
     background:linear-gradient(160deg,#20201d 0%,#16150f 55%,#0e0d09 100%);
     border:1px solid rgba(232,200,119,.14);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.05), 0 6px 16px rgba(0,0,0,.45);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 6px 16px rgba(0,0,0,.45);
     transition:transform 260ms var(--ease),box-shadow 260ms var(--ease),
-      border-color 260ms var(--ease),opacity 420ms var(--ease);
-    -webkit-tap-highlight-color:transparent;}
-  .case::before{content:"";position:absolute;left:16%;right:16%;top:20%;height:3px;
-    border-radius:3px;background:linear-gradient(90deg,transparent,rgba(232,200,119,.35),transparent);
-    opacity:.5;} /* a hint of a handle */
+      border-color 260ms var(--ease),opacity 420ms var(--ease);-webkit-tap-highlight-color:transparent;}
+  .case::before{content:"";position:absolute;left:16%;right:16%;top:20%;height:3px;border-radius:3px;
+    background:linear-gradient(90deg,transparent,rgba(232,200,119,.35),transparent);opacity:.5;}
   .case:hover{transform:translateY(-3px);border-color:var(--gold-deep);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 10px 26px rgba(0,0,0,.55),
-      0 0 22px rgba(232,200,119,.12);}
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 10px 26px rgba(0,0,0,.55),0 0 22px rgba(232,200,119,.12);}
   .case:active{transform:translateY(-1px) scale(.98);}
-  .case.spent{cursor:default;opacity:.28;filter:saturate(.4);transform:none;
-    box-shadow:none;border-color:rgba(255,255,255,.05);}
-  .case.mine{border-color:var(--gold);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),
-      0 0 34px rgba(232,200,119,.22),0 8px 22px rgba(0,0,0,.5);cursor:default;}
+  .case.spent{cursor:default;opacity:.26;filter:saturate(.4);transform:none;box-shadow:none;
+    border-color:rgba(255,255,255,.05);}
+  .case.mine{border-color:var(--gold);cursor:default;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 0 34px rgba(232,200,119,.22),0 8px 22px rgba(0,0,0,.5);}
 
-  /* your case badge */
   .mycase{display:flex;flex-direction:column;align-items:center;gap:6px;}
-  .mycase .seal{width:74px;height:60px;border-radius:12px;display:flex;align-items:center;
-    justify-content:center;font-variant-numeric:tabular-nums;font-size:1.3rem;
+  .mycase .seal{width:76px;height:60px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+    font-variant-numeric:tabular-nums;font-size:1.25rem;
     background:linear-gradient(160deg,#26241c,#141209);border:1px solid var(--gold);
-    box-shadow:0 0 40px rgba(232,200,119,.22), inset 0 1px 0 rgba(255,255,255,.08);}
-  .mycase .tag{color:var(--muted);font-family:ui-sans-serif,system-ui,sans-serif;
-    font-size:.68rem;letter-spacing:.28em;text-transform:uppercase;}
+    box-shadow:0 0 40px rgba(232,200,119,.22),inset 0 1px 0 rgba(255,255,255,.08);}
+  .mycase .tag{color:var(--muted);font-family:ui-sans-serif,system-ui,sans-serif;font-size:.68rem;
+    letter-spacing:.28em;text-transform:uppercase;}
 
-  /* value meter */
-  .board{width:100%;max-width:560px;display:grid;grid-template-columns:1fr 1fr;
-    gap:2px 18px;font-variant-numeric:tabular-nums;
-    font-family:ui-sans-serif,system-ui,sans-serif;}
-  .val{display:flex;justify-content:flex-end;padding:3px 2px;font-size:.86rem;
-    color:var(--muted);border-bottom:1px solid rgba(255,255,255,.03);
-    transition:color 500ms var(--ease),opacity 500ms var(--ease),
-      text-shadow 500ms var(--ease);}
+  .board{width:100%;max-width:560px;display:grid;grid-template-columns:1fr 1fr;gap:2px 18px;
+    font-variant-numeric:tabular-nums;font-family:ui-sans-serif,system-ui,sans-serif;}
+  .val{display:flex;justify-content:flex-end;padding:3px 2px;font-size:.86rem;color:var(--muted);
+    border-bottom:1px solid rgba(255,255,255,.03);
+    transition:color 500ms var(--ease),opacity 500ms var(--ease),text-shadow 500ms var(--ease);}
   .val.hot{color:var(--gold);text-shadow:0 0 14px rgba(232,200,119,.35);}
   .val.warm{color:#cdb98a;}
-  .val.dead{color:var(--faint);opacity:.4;text-decoration:line-through;
-    text-shadow:none;}
+  .val.dead{color:var(--faint);opacity:.38;text-decoration:line-through;text-shadow:none;}
 
-  /* the offer / big number */
   .offer{font-variant-numeric:tabular-nums;font-weight:600;line-height:1;
-    font-size:clamp(2.6rem,12vw,5.4rem);letter-spacing:.005em;
-    text-shadow:0 0 60px rgba(232,200,119,.28);}
+    font-size:clamp(2.6rem,13vw,5.6rem);letter-spacing:.005em;text-shadow:0 0 60px rgba(232,200,119,.28);}
+  body.apotheosis .offer{text-shadow:0 0 100px rgba(232,200,119,.6);}
+  body.cool .offer,body.floor .offer{text-shadow:none;}
 
-  /* controls */
   .choices{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
-  button.act{appearance:none;cursor:pointer;color:var(--ink);
-    font-family:ui-sans-serif,system-ui,sans-serif;letter-spacing:.16em;
-    text-transform:uppercase;font-size:.82rem;padding:14px 26px;border-radius:999px;
+  button.act{appearance:none;cursor:pointer;color:var(--ink);font-family:ui-sans-serif,system-ui,sans-serif;
+    letter-spacing:.16em;text-transform:uppercase;font-size:.82rem;padding:14px 26px;border-radius:999px;
     background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
-    border:1px solid var(--edge);transition:all 240ms var(--ease);
-    -webkit-tap-highlight-color:transparent;}
-  button.act:hover{border-color:var(--gold);box-shadow:0 0 26px rgba(232,200,119,.18);
-    transform:translateY(-1px);}
-  button.act.primary{border-color:var(--gold-deep);
-    background:linear-gradient(180deg,rgba(232,200,119,.18),rgba(232,200,119,.05));
-    color:var(--gold);}
+    border:1px solid var(--edge);transition:all 240ms var(--ease);-webkit-tap-highlight-color:transparent;}
+  button.act:hover{border-color:var(--gold);box-shadow:0 0 26px rgba(232,200,119,.18);transform:translateY(-1px);}
+  button.act.primary{border-color:var(--gold-deep);color:var(--gold);
+    background:linear-gradient(180deg,rgba(232,200,119,.18),rgba(232,200,119,.05));}
   button.act.ghost{opacity:.72;}
-  .err{color:var(--danger);font-family:ui-sans-serif,system-ui,sans-serif;
-    font-size:.82rem;min-height:1.1em;}
+  .err{color:var(--danger);font-family:ui-sans-serif,system-ui,sans-serif;font-size:.82rem;min-height:1.1em;text-align:center;}
 
-  .fade-in{animation:fade var(--t-med) var(--ease) both;}
+  .fade-in{animation:fade 520ms var(--ease) both;}
   @keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
-  .rise{animation:rise var(--t-slow) var(--ease) both;}
-  @keyframes rise{from{opacity:0;transform:scale(.94);filter:blur(6px);}
-    to{opacity:1;transform:none;filter:blur(0);}}
+  .rise{animation:rise 900ms var(--ease) both;}
+  @keyframes rise{from{opacity:0;transform:scale(.94);filter:blur(6px);}to{opacity:1;transform:none;filter:blur(0);}}
+  .land{animation:land 950ms var(--ease) both;}
+  @keyframes land{0%{opacity:0;transform:scale(.82);filter:blur(12px);}55%{opacity:1;filter:blur(0);}100%{transform:scale(1);}}
+  .pulse{animation:breath 2.2s ease-in-out infinite;}
+  @keyframes breath{0%,100%{opacity:.34;}50%{opacity:.92;}}
   @media(prefers-reduced-motion:reduce){*{animation-duration:1ms!important;transition-duration:1ms!important;}}
 </style>
 </head>
 <body>
+<div id="glow"></div>
 <main class="stage">
-  <div class="marquee">
-    <span>Topa ou Não Topa</span>
-    <span id="hud"></span>
-  </div>
+  <div class="marquee"><span>Topa ou Não Topa</span><span id="hud"></span></div>
   <section id="focal" class="focal"></section>
   <div id="err" class="err"></div>
 </main>
 
 <script>
-const BRL = new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"});
-const money = (v)=> v==null ? "—" : BRL.format(Number(v));
-const el = (tag,cls,html)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e;};
-const wait = (ms)=>new Promise(r=>setTimeout(r,ms));
+const BRL=new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"});
+const money=(v)=>v==null?"—":BRL.format(Number(v));
+const el=(t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
+const wait=(ms)=>new Promise(r=>setTimeout(r,ms));
+const reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const beat=(ms)=>wait(reduce?Math.min(ms,150):ms);
 
 let sessionId=null, prevStatus=null;
-const focal=document.getElementById("focal");
-const hud=document.getElementById("hud");
-const errBox=document.getElementById("err");
+const focal=document.getElementById("focal"), hud=document.getElementById("hud"), errBox=document.getElementById("err");
 
-async function post(path,payload){
-  const res=await fetch(path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload||{})});
-  return res.json();
-}
-async function start(){const d=await post("/api/start",{});sessionId=d.session_id;prevStatus=null;render(d.view);}
-async function act(action,params){const d=await post("/api/act",{session_id:sessionId,action,params:params||{}});render(d.view);}
+async function post(p,d){const r=await fetch(p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(d||{})});return r.json();}
+async function start(){document.body.className="";const d=await post("/api/start",{});sessionId=d.session_id;prevStatus=null;render(d.view);}
+async function act(a,p){const d=await post("/api/act",{session_id:sessionId,action:a,params:p||{}});render(d.view);}
 
-/* build the full value board (remaining + already opened), high → low */
 function boardValues(view){
   const alive=view.remaining_values.map(v=>({v:Number(v),alive:true}));
   const dead=view.opened_briefcases.map(o=>({v:Number(o.value),alive:false}));
   return [...alive,...dead].sort((a,b)=>b.v-a.v);
 }
 function boardEl(view){
-  const board=el("div","board fade-in");
-  const rows=boardValues(view);
-  const max=rows.length?rows[0].v:0;
-  rows.forEach(r=>{
-    let cls="val";
-    if(!r.alive)cls+=" dead";
-    else if(r.v>=max*0.5)cls+=" hot";
-    else if(r.v>=max*0.1)cls+=" warm";
-    board.appendChild(el("div",cls,money(r.v)));
-  });
+  const board=el("div","board fade-in"),rows=boardValues(view),max=rows.length?rows[0].v:0;
+  rows.forEach(r=>{let c="val";if(!r.alive)c+=" dead";else if(r.v>=max*0.5)c+=" hot";else if(r.v>=max*0.1)c+=" warm";
+    board.appendChild(el("div",c,money(r.v)));});
   return board;
 }
-function myCaseEl(view,revealValue){
-  const p=view.player_briefcase; if(!p) return null;
-  const wrap=el("div","mycase");
-  wrap.appendChild(el("div","seal", revealValue&&p.value?money(p.value):("#"+p.number)));
-  wrap.appendChild(el("div","tag","a sua maleta"));
-  return wrap;
+function myCaseEl(view,reveal){
+  const p=view.player_briefcase;if(!p)return null;
+  const w=el("div","mycase");
+  w.appendChild(el("div","seal",reveal&&p.value?money(p.value):("#"+p.number)));
+  w.appendChild(el("div","tag","a sua maleta"));return w;
 }
-
 function setHud(view){
   if(view.status==="NOT_STARTED"){hud.innerHTML="";return;}
-  const p=view.player_briefcase;
-  hud.innerHTML = `Rodada <b>${view.current_round}</b> · sua maleta <b>#${p?p.number:"—"}</b>`;
+  const p=view.player_briefcase;hud.innerHTML=`Rodada <b>${view.current_round}</b> · sua maleta <b>#${p?p.number:"—"}</b>`;
 }
+function setMood(m){document.body.classList.remove("tense","warm","cool","floor","apotheosis");if(m)document.body.classList.add(m);}
 
-/* ---- scenes ---- */
+/* ---------- scenes ---------- */
 function sceneChoose(view){
-  focal.innerHTML="";
-  focal.append(
-    el("div","kicker","bem-vindo"),
+  setMood(null);focal.innerHTML="";
+  focal.append(el("div","kicker","bem-vindo"),
     el("div","title","Escolha a maleta que será <span class='gold'>sua</span>."),
-    el("div","lead","Ela ficará protegida até o fim. Ninguém sabe o que há dentro — nem você."),
-  );
+    el("div","lead","Ela ficará protegida até o fim. Ninguém sabe o que há dentro — nem você."));
   const grid=el("div","cases rise");
-  for(let n=1;n<=26;n++){
-    const c=el("div","case",String(n));
-    c.onclick=()=>act("select_briefcase",{number:n});
-    grid.appendChild(c);
-  }
+  for(let n=1;n<=26;n++){const c=el("div","case",String(n));c.onclick=()=>act("select_briefcase",{number:n});grid.appendChild(c);}
   focal.appendChild(grid);
 }
 function sceneHunt(view){
-  focal.innerHTML="";
-  const mine=myCaseEl(view,false); if(mine)focal.appendChild(mine);
-  focal.append(
-    el("div","kicker","abra uma maleta"),
-    el("div","lead",`Restam <b class='gold'>${view.openings_remaining}</b> nesta rodada. Elimine as pequenas… reze pelas grandes.`),
-  );
-  const grid=el("div","cases fade-in");
-  const open=new Set(view.available_briefcases);
+  setMood(null);focal.innerHTML="";
+  const mine=myCaseEl(view,false);if(mine)focal.appendChild(mine);
+  focal.append(el("div","kicker","abra uma maleta"),
+    el("div","lead",`Restam <b class='gold'>${view.openings_remaining}</b> nesta rodada. Elimine as pequenas… reze pelas grandes.`));
+  const grid=el("div","cases fade-in"),open=new Set(view.available_briefcases);
   for(let n=1;n<=26;n++){
-    const isMine = view.player_briefcase && view.player_briefcase.number===n;
-    if(open.has(n)){
-      const c=el("div","case",String(n));
-      c.onclick=()=>act("open_briefcase",{number:n});
-      grid.appendChild(c);
-    }else{
-      grid.appendChild(el("div","case "+(isMine?"mine":"spent"), isMine?"★":""));
-    }
+    const isMine=view.player_briefcase&&view.player_briefcase.number===n;
+    if(open.has(n)){const c=el("div","case",String(n));c.onclick=()=>act("open_briefcase",{number:n});grid.appendChild(c);}
+    else grid.appendChild(el("div","case "+(isMine?"mine":"spent"),isMine?"★":""));
   }
-  focal.appendChild(grid);
-  focal.appendChild(boardEl(view));
-}
-function sceneOffer(view){
-  focal.innerHTML="";
-  focal.append(
-    el("div","kicker","o banqueiro fez uma oferta"),
-    el("div","offer amount gold rise",money(view.current_offer)),
-    el("div","lead","Vale a certeza… ou você acredita na sua maleta?"),
-  );
-  const row=el("div","choices");
-  const topa=el("button","act primary","Topa"); topa.onclick=()=>act("decide",{accept:true});
-  const nao=el("button","act ghost","Não topa"); nao.onclick=()=>act("decide",{accept:false});
-  row.append(topa,nao);
-  focal.appendChild(row);
-  focal.appendChild(boardEl(view));
+  focal.appendChild(grid);focal.appendChild(boardEl(view));
 }
 function sceneEndgame(view){
-  focal.innerHTML="";
-  const mine=myCaseEl(view,false); if(mine)focal.appendChild(mine);
-  focal.append(
-    el("div","kicker","restam duas maletas"),
-    el("div","title","Ficar com a sua… ou <span class='gold'>trocar</span>?"),
-  );
-  const row=el("div","choices");
-  const tro=el("button","act primary","Trocar"); tro.onclick=()=>act("decide_swap",{swap:true});
-  const man=el("button","act","Manter"); man.onclick=()=>act("decide_swap",{swap:false});
-  row.append(tro,man);
-  focal.appendChild(row);
-}
-function sceneReveal(view){
-  focal.innerHTML="";
-  const r=view.official_result;
-  const mine=myCaseEl(view,true); if(mine)focal.appendChild(mine);
-  focal.append(
-    el("div","kicker","você levou"),
-    el("div","offer amount gold rise",money(r.amount_received)),
-    el("div","lead",`A sua maleta guardava ${money(r.player_briefcase_value)}.`),
-  );
-  if(view.simulation){
-    const s=view.simulation;
-    focal.appendChild(el("div","lead",
-      `Se tivesse seguido, teria ${money(s.hypothetical)} — ${s.hypothetical_is_higher?"você teria ganhado mais.":"você fez bem em aceitar."}`));
-  }
-  const row=el("div","choices");
-  if(view.available_actions.includes("simulate")){
-    const sim=el("button","act","Ver o que teria acontecido"); sim.onclick=()=>act("simulate",{});
-    row.appendChild(sim);
-  }
-  const again=el("button","act ghost","Jogar de novo"); again.onclick=()=>start();
-  row.appendChild(again);
-  focal.appendChild(row);
+  setMood("tense");focal.innerHTML="";
+  const mine=myCaseEl(view,false);if(mine)focal.appendChild(mine);
+  focal.append(el("div","kicker","restam duas maletas"),
+    el("div","title","Ficar com a sua… ou <span class='gold'>trocar</span>?"));
+  const row=el("div","choices fade-in");
+  const t=el("button","act primary","Trocar");t.onclick=()=>act("decide_swap",{swap:true});
+  const m=el("button","act","Manter");m.onclick=()=>act("decide_swap",{swap:false});
+  row.append(t,m);focal.appendChild(row);
 }
 
-function render(view){
-  errBox.textContent = view.error ? view.error : "";
-  setHud(view);
-  const s=view.status;
-  if(s==="NOT_STARTED")sceneChoose(view);
-  else if(s==="IN_PROGRESS")sceneHunt(view);
-  else if(s==="OFFER_PENDING")sceneOffer(view);
-  else if(s==="FINAL_SWAP_PENDING")sceneEndgame(view);
-  else sceneReveal(view);
+/* ---------- set piece 1: the offer ---------- */
+function buildOffer(view,animate){
+  setMood(null);focal.innerHTML="";
+  focal.append(el("div","kicker","a oferta do banqueiro"),
+    el("div","offer amount gold "+(animate?"land":"fade-in"),money(view.current_offer)),
+    el("div","lead"+(animate?" fade-in":""),"Vale a certeza… ou você acredita na sua maleta?"));
+  const row=el("div","choices"+(animate?" fade-in":""));
+  const topa=el("button","act primary","Topa");topa.onclick=()=>act("decide",{accept:true});
+  const nao=el("button","act ghost","Não topa");nao.onclick=()=>act("decide",{accept:false});
+  row.append(topa,nao);focal.appendChild(row);
+}
+async function playOffer(view){
+  setMood("tense");focal.innerHTML="";
+  focal.appendChild(el("div","kicker pulse","o banqueiro está pensando…"));
+  await beat(1900);          /* the wait: he thinks */
+  setMood(null);
+  buildOffer(view,true);     /* the number lands, then silence, then the choice */
+}
+
+/* ---------- set piece 2: the reveal ---------- */
+function revealMood(view){
+  const r=view.official_result,got=Number(r.amount_received),own=Number(r.player_briefcase_value);
+  const all=boardValues(view).map(x=>x.v),mx=Math.max(...all),mn=Math.min(...all);
+  if(got===mx)return{mood:"apotheosis",gold:true,head:"O MAIOR prêmio possível. Não dá pra fazer melhor."};
+  if(got===mn)return{mood:"floor",gold:false,head:"O piso da mesa — mas você encarou o Banqueiro até o fim."};
+  if(got>=own)return{mood:"warm",gold:true,head:"Você levou a melhor."};
+  return{mood:"cool",gold:false,head:"Dessa vez o Banqueiro venceu."};
+}
+function buildReveal(view,animate){
+  const r=view.official_result,m=revealMood(view);setMood(m.mood);focal.innerHTML="";
+  const mine=myCaseEl(view,true);if(mine)focal.appendChild(mine);
+  focal.append(el("div","kicker","você levou"),
+    el("div","offer amount "+(m.gold?"gold":"sober")+" "+(animate?"land":"fade-in"),money(r.amount_received)),
+    el("div","lead"+(animate?" fade-in":""),m.head),
+    el("div","lead"+(animate?" fade-in":""),`A sua maleta guardava ${money(r.player_briefcase_value)}.`));
+  if(view.simulation){const s=view.simulation;
+    focal.appendChild(el("div","lead fade-in",
+      `Se tivesse seguido: ${money(s.hypothetical)} — ${s.hypothetical_is_higher?"teria ganhado mais.":"você fez bem em aceitar."}`));}
+  const row=el("div","choices fade-in");
+  if(view.available_actions.includes("simulate")){const b=el("button","act","Ver o que teria acontecido");b.onclick=()=>act("simulate",{});row.appendChild(b);}
+  const again=el("button","act ghost","Jogar de novo");again.onclick=()=>start();row.appendChild(again);
+  focal.appendChild(row);
+}
+async function playReveal(view){
+  setMood("tense");focal.innerHTML="";
+  focal.appendChild(el("div","kicker pulse","abrindo…"));
+  await beat(1700);          /* the held breath before the truth */
+  buildReveal(view,true);
+}
+
+/* ---------- director ---------- */
+async function render(view){
+  errBox.textContent=view.error||"";setHud(view);
+  const s=view.status, was=prevStatus;
+  if(s==="OFFER_PENDING") was!=="OFFER_PENDING"?await playOffer(view):buildOffer(view,false);
+  else if(s==="ACCEPTED"||s==="FINISHED") (was==="ACCEPTED"||was==="FINISHED")?buildReveal(view,false):await playReveal(view);
+  else if(s==="NOT_STARTED") sceneChoose(view);
+  else if(s==="IN_PROGRESS") sceneHunt(view);
+  else sceneEndgame(view);
   prevStatus=s;
 }
 
