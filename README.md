@@ -39,7 +39,9 @@ A **Fase 9** refinou a experiência da CLI a partir de testes práticos, **sem**
 
 A **Fase 10** foi uma etapa de **avaliação e decisão** (sem implementação), consolidando a baseline estável e registrando as evoluções futuras como propostas ainda não aprovadas. A **Fase 10.5** acrescentou uma **narração de encerramento** (`interface_adapters/cli/narration.py`): após a linha factual do resultado, uma frase emocional opcional, escolhida de forma determinística, **sem** tocar regras, domínio ou a simulação `CONTINUE_HOLD`.
 
-Com isso encerra-se o **primeiro ciclo de desenvolvimento**: uma versão jogável e estável pelo terminal, com **toda a suíte de testes automatizados passando**. Ainda **não** há analytics nem persistência. As próximas evoluções estão organizadas no **Roadmap 2.0** (Fases 11+, ainda não iniciadas) — ver [`roadmap.md`](docs/roadmap.md).
+Com a **Fase 10.5** encerrou-se o **primeiro ciclo de desenvolvimento** (release `1.0.0`): uma versão jogável e estável pelo terminal, com **toda a suíte de testes automatizados passando**.
+
+A **Fase 11** (release `1.1.0`, primeira do **Roadmap 2.0**) adicionou **persistência de partidas concluídas e histórico entre execuções** como capacidade **opcional e aditiva**: cada partida é registrada automaticamente (um JSON por partida, em diretório resolvido pela infraestrutura) e pode ser revista com `tont-game history`. A persistência **nunca** impede o jogo de funcionar — falhas degradam graciosamente. O domínio permanece desacoplado da tecnologia de armazenamento (port `GameHistoryRepository`; ver [ADR 0007](docs/decisions/0007-persistencia-do-historico.md)). Ainda **não** há analytics nem GUI. As demais evoluções seguem no **Roadmap 2.0** (Fases 12+, ainda não iniciadas) — ver [`roadmap.md`](docs/roadmap.md).
 
 ## Requisitos
 
@@ -69,6 +71,7 @@ Comandos disponíveis via `taskipy`:
 uv run python -m tont_game        # partida aleatória
 uv run python -m tont_game 42     # partida reproduzível (seed 42)
 uv run tont-game                  # equivalente, pelo console script (entry point)
+uv run tont-game history          # lista suas partidas anteriores
 ```
 
 A interface é em Português do Brasil: escolha a maleta inicial, abra maletas a cada rodada, decida **Topa/Não Topa** a cada oferta e, ao final, conduza a troca do endgame ou (após um Topa) a simulação pós-jogo. A cada rodada a CLI mostra as maletas disponíveis e um status compacto; ao final da rodada, um bloco de decisão reúne a oferta e a lista completa dos valores ainda em jogo.

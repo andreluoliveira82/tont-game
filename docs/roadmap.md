@@ -443,14 +443,33 @@ Principais entregas:
 
 ---
 
+# Fase 11 — Persistência de partidas + histórico entre execuções
+
+**Status:** ✅ Concluída — primeira fase do Roadmap 2.0 (release `1.1.0`). Concretiza a estratégia de persistência que o ADR 0005 deixou em aberto; ver **ADR 0007**.
+
+Persistência de partidas **concluídas** como **capacidade opcional e aditiva** —
+o jogo permanece totalmente jogável sem ela. Nada nas regras, no domínio ou na
+simulação `CONTINUE_HOLD` mudou.
+
+Principais entregas:
+
+- **Porta de saída `GameHistoryRepository`** (domínio) + VO `GameHistorySummary` e casos de uso finos `SaveFinishedGame` / `ListGameHistory`.
+- **Adaptador `FileGameHistoryRepository`** (infraestrutura): um JSON por partida; diretório resolvido por um **locator** encapsulado na infraestrutura (o resto da aplicação recebe apenas um caminho).
+- **Schema público e versionado** (`schema_version`), desacoplado da estrutura interna do `GameRecord` (dinheiro como string, datas ISO-8601, ids como string, enums por valor).
+- **Salvamento automático** da partida ao encerrar, com aviso discreto; falha de I/O **degrada graciosamente** (o jogo continua).
+- **Comando `tont-game history`** para rever partidas passadas, com despacho preparado para futuros subcomandos (`show`/`stats`/`export`).
+
+**Critério de saída:** partidas concluídas persistidas e revisáveis entre execuções, sem acoplar o domínio a tecnologia de armazenamento e sem quebrar o jogo em caso de falha. ✅ Atendido.
+
+---
+
 # Roadmap 2.0 — Fases futuras (propostas, NÃO aprovadas)
 
-As Fases 0–10.5 acima constituem o **Ciclo 1**, concluído: baseline estável, com
-uma versão jogável pela CLI. As fases a seguir são **propostas de evolução —
-ainda NÃO aprovadas** para implementação; cada uma exige autorização explícita e
-não deve ser iniciada automaticamente.
+As Fases 0–10.5 constituem o **Ciclo 1**; a **Fase 11** (acima) abriu o Roadmap 2.0
+e está concluída. As fases a seguir são **propostas de evolução — ainda NÃO
+aprovadas** para implementação; cada uma exige autorização explícita e não deve
+ser iniciada automaticamente.
 
-- **Fase 11 (proposta) — Persistência de partidas concluídas + histórico entre execuções:** persistir cada `GameRecord` encerrado (porta de saída + arquivo, **não** banco de dados) e permitir rever partidas passadas. É a base ("keystone") das fases seguintes.
 - **Fase 12 (proposta) — Distribuição para jogadores reais:** empacotamento/publicação do console script já existente, para uso por não-desenvolvedores.
 - **Fase 13 (proposta) — Superfície de configuração:** expor valores/sequência/percentuais/estratégia (já injetáveis no código), orientada a um driver concreto.
 - **Fase 14 (proposta) — Analytics / visão administrativa:** análise do histórico acumulado; depende da Fase 11 e de volume de dados reais.

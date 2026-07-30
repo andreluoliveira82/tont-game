@@ -114,6 +114,14 @@ Value Object imutável (`frozen`) que representa o resultado de uma simulação:
 
 Registro estruturado, mantido em memória, que permite reconstruir a narrativa completa da partida: configuração inicial (id, `started_at`, distribuição concreta, seed, maleta escolhida), histórico por rodada e resultado oficial. É **append-only** (só cresce; fatos passados não são sobrescritos) e concebido para poder ser persistido futuramente sem acoplar o domínio a uma tecnologia específica. O resultado da simulação pós-jogo (`SimulationResult`) **não** faz parte do `GameRecord`.
 
+## Game History Repository
+
+Port de saída do domínio (`GameHistoryRepository`) que persiste partidas concluídas e as lê de volta (`save`/`list_summaries`). Persistência é uma capacidade **opcional**; falhas técnicas surgem como `GameHistoryError` e o jogo degrada graciosamente. A implementação concreta é `FileGameHistoryRepository` (infraestrutura, um JSON por partida). Ver ADR 0007.
+
+## Game History Summary
+
+Visão **leve e somente-leitura** de uma partida concluída, usada para listar o histórico (`GameHistorySummary`): identificador, data de término, tipo de encerramento, valor recebido e valor da maleta do jogador.
+
 ## Game Session
 
 Composição operacional da partida na camada de aplicação: agrupa o `GameState` (estado atual) e o `GameRecord` (histórico). Os casos de uso operam sobre ela. O `GameRecord` nunca referencia o `GameState` mutável.

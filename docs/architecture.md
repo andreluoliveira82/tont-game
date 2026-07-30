@@ -70,7 +70,8 @@ tont-game/
 │       ├── 0003-troca-final.md
 │       ├── 0004-simulacao-pos-jogo.md
 │       ├── 0005-historico-da-partida-e-persistencia.md
-│       └── 0006-camada-application-e-historico.md
+│       ├── 0006-camada-application-e-historico.md
+│       └── 0007-persistencia-do-historico.md
 │
 ├── src/
 │   └── tont_game/
@@ -92,7 +93,8 @@ tont-game/
 │       │   │   ├── records.py        # BriefcaseOpeningRecord, BankerOfferRecord,
 │       │   │   │                     # OfficialResult, Decision, EndingType
 │       │   │   ├── round_record.py   # RoundRecord (imutável/frozen)
-│       │   │   └── game_record.py    # GameRecord (append-only)
+│       │   │   ├── game_record.py    # GameRecord (append-only)
+│       │   │   └── repository.py     # port GameHistoryRepository (Fase 11)
 │       │   ├── simulation/           # (Fase 6)
 │       │   │   └── post_game_simulation.py  # servico + SimulationResult/Scenario
 │       │   └── value_objects/
@@ -109,11 +111,14 @@ tont-game/
 │       │       ├── process_banker_offer.py
 │       │       ├── decide_offer.py
 │       │       ├── decide_final_swap.py         # (Fase 5.5)
-│       │       └── run_post_game_simulation.py  # (Fase 6)
+│       │       ├── run_post_game_simulation.py  # (Fase 6)
+│       │       ├── save_finished_game.py        # (Fase 11)
+│       │       └── list_game_history.py         # (Fase 11)
 │       │
 │       ├── interface_adapters/       # (Fase 8)
 │       │   └── cli/
 │       │       ├── controller.py     # CliController (game loop)
+│       │       ├── history_controller.py  # comando history (Fase 11)
 │       │       ├── narration.py      # narração de encerramento (Fase 10.5)
 │       │       ├── presenters.py     # formatação PT-BR (format_money)
 │       │       └── views.py          # Console + TerminalConsole
@@ -121,6 +126,10 @@ tont-game/
 │       └── infrastructure/
 │           ├── randomness/
 │           │   └── random_source.py  # DefaultRandomSource
+│           ├── persistence/          # (Fase 11)
+│           │   ├── locations.py      # locator do diretório de dados
+│           │   ├── game_record_schema.py       # schema JSON público/versionado
+│           │   └── file_game_history_repository.py  # GameHistoryRepository
 │           ├── clock.py              # SystemClock (Fase 5)
 │           └── identifiers.py        # UuidGameIdGenerator (Fase 5)
 │
@@ -135,6 +144,8 @@ tont-game/
 │   └── integration/                 # (Fase 7)
 │
 ├── .gitignore
+├── CHANGELOG.md
+├── LICENSE
 ├── llm-instructions.md
 ├── pyproject.toml
 └── README.md
@@ -292,7 +303,7 @@ Exemplo:
 - fonte de aleatoriedade (`DefaultRandomSource` → port `RandomSource`);
 - relógio do sistema (`SystemClock` → port `Clock`, `datetime` UTC);
 - geração de identificadores (`UuidGameIdGenerator` → port `GameIdGenerator`, UUID);
-- integração futura com persistência;
+- persistência do histórico (`FileGameHistoryRepository` → port `GameHistoryRepository`, JSON em arquivo; diretório resolvido por um locator encapsulado aqui) — ver ADR 0007;
 - integração futura com GUI ou outros adaptadores.
 
 Formatação e localização de datas/valores ficam nas camadas superiores
@@ -402,11 +413,20 @@ A estratégia inicial depende apenas do estado atual e da rodada, não do histó
 
 ## 14. Persistência
 
-A persistência permanente **não** faz parte do MVP. O histórico é mantido apenas em memória durante a execução.
+No MVP (Ciclo 1) o histórico existia apenas em memória. A partir do Roadmap 2.0
+(**Fase 11**, release `1.1.0`), a persistência de **partidas concluídas** foi
+implementada como **capacidade opcional e aditiva**: um port de saída
+(`GameHistoryRepository`) no domínio e um adaptador de infraestrutura
+(`FileGameHistoryRepository`) que grava **um JSON por partida**, com schema
+público e versionado. O jogo permanece totalmente jogável sem persistência e
+degrada graciosamente em caso de falha de I/O.
 
-O domínio e os casos de uso não devem se acoplar a nenhuma tecnologia de persistência. Deve ser possível, no futuro, persistir um `GameRecord` completo (por exemplo em JSON, SQLite ou banco de dados) sem alterar as regras centrais.
-
-Não criar camada de persistência complexa por antecipação. Ver `docs/decisions/0005-historico-da-partida-e-persistencia.md`.
+O domínio e os casos de uso não se acoplam a nenhuma tecnologia de persistência:
+a escolha (arquivo/JSON, e o diretório resolvido por um locator) fica confinada à
+infraestrutura e pode evoluir (XDG/AppData/BD) alterando apenas o adaptador e o
+locator. Persistência complexa continua a ser evitada por antecipação. Ver
+`docs/decisions/0005-historico-da-partida-e-persistencia.md` e
+`docs/decisions/0007-persistencia-do-historico.md`.
 
 ---
 

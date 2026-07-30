@@ -21,3 +21,4 @@ Quando uma decisão for revista, o registro correspondente deve ser atualizado o
 | [0004](0004-simulacao-pos-jogo.md) | Simulação pós-jogo |
 | [0005](0005-historico-da-partida-e-persistencia.md) | Histórico da partida e persistência |
 | [0006](0006-camada-application-e-historico.md) | Camada Application, histórico da partida e resultado oficial |
+| [0007](0007-persistencia-do-historico.md) | Estratégia de persistência do histórico |
