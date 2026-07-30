@@ -14,7 +14,7 @@ from typing import Protocol, runtime_checkable
 from uuid import UUID
 
 from tont_game.domain.history.game_record import GameRecord
-from tont_game.domain.history.records import EndingType
+from tont_game.domain.history.records import Decision, EndingType
 from tont_game.domain.value_objects.money import Money
 
 
@@ -38,6 +38,31 @@ class GameHistorySummary:
     player_briefcase_value: Money
 
 
+@dataclass(frozen=True)
+class GameHistoryRoundDetail:
+    """Read-only detail of a single round within a persisted game."""
+
+    round_number: int
+    openings: tuple[tuple[int, Money], ...]
+    offer: Money | None
+    decision: Decision | None
+
+
+@dataclass(frozen=True)
+class GameHistoryDetail:
+    """Read-only detail of a single persisted game (for ``history show``)."""
+
+    game_id: UUID
+    started_at: datetime
+    finished_at: datetime | None
+    seed: int | None
+    player_briefcase: int | None
+    ending_type: EndingType
+    amount_received: Money
+    player_briefcase_value: Money
+    rounds: tuple[GameHistoryRoundDetail, ...]
+
+
 @runtime_checkable
 class GameHistoryRepository(Protocol):
     """Port for storing finished games and reading them back."""
@@ -50,6 +75,15 @@ class GameHistoryRepository(Protocol):
         """Return summaries of persisted games, most recent first.
 
         Unreadable or corrupted individual entries are skipped;
+        ``GameHistoryError`` is raised only when the underlying store as a whole
+        cannot be accessed.
+        """
+        ...
+
+    def get(self, game_id: UUID) -> GameHistoryDetail | None:
+        """Return the detail of a persisted game, or ``None`` if it is not
+        found or cannot be read (e.g. corrupted or an unknown schema version).
+
         ``GameHistoryError`` is raised only when the underlying store as a whole
         cannot be accessed.
         """

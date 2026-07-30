@@ -8,13 +8,16 @@ skipped when listing so one bad file never hides the rest of the history.
 
 import json
 from pathlib import Path
+from uuid import UUID
 
 from tont_game.domain.history.game_record import GameRecord
 from tont_game.domain.history.repository import (
+    GameHistoryDetail,
     GameHistoryError,
     GameHistorySummary,
 )
 from tont_game.infrastructure.persistence.game_record_schema import (
+    detail_from_dict,
     serialize,
     summary_from_dict,
 )
@@ -48,6 +51,20 @@ class FileGameHistoryRepository:
         ]
         summaries.sort(key=lambda summary: summary.finished_at, reverse=True)
         return summaries
+
+    def get(self, game_id: UUID) -> GameHistoryDetail | None:
+        try:
+            if not self._directory.exists():
+                return None
+            matches = sorted(self._directory.glob(f"*-{game_id}.json"))
+        except OSError as error:
+            raise GameHistoryError(f"Failed to access game history: {error}") from error
+        for path in matches:
+            try:
+                return detail_from_dict(json.loads(path.read_text(encoding="utf-8")))
+            except (OSError, ValueError, KeyError):
+                return None  # matched file is corrupted or an unknown version
+        return None
 
     @staticmethod
     def _filename(record: GameRecord) -> str:

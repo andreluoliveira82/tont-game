@@ -4,11 +4,14 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from uuid import uuid4
 
+import pytest
+
 from tont_game.domain.history.game_record import GameRecord
 from tont_game.domain.history.records import Decision, EndingType, OfficialResult
 from tont_game.domain.value_objects.money import Money
 from tont_game.infrastructure.persistence.game_record_schema import (
     SCHEMA_VERSION,
+    detail_from_dict,
     serialize,
     summary_from_dict,
 )
@@ -85,3 +88,28 @@ def test_serialize_endgame_swap_result() -> None:
     assert result["final_briefcase_number"] == 2
     assert result["final_briefcase_value"] == "250.00"
     assert result["accepted_offer"] is None
+
+
+def test_detail_round_trip_reconstructs_the_full_game() -> None:
+    record = topa_record()
+    detail = detail_from_dict(serialize(record))
+    assert detail.game_id == record.game_id
+    assert detail.seed == 7
+    assert detail.player_briefcase == 2
+    assert detail.ending_type is EndingType.OFFER_ACCEPTED
+    assert detail.amount_received == Money.of("120.50")
+    assert len(detail.rounds) == 1
+    round_one = detail.rounds[0]
+    assert round_one.round_number == 1
+    assert round_one.openings == ((1, Money.of("100")),)
+    assert round_one.offer == Money.of("120.50")
+    assert round_one.decision is Decision.ACCEPT
+
+
+def test_unknown_future_schema_version_is_rejected() -> None:
+    data = serialize(topa_record())
+    data["schema_version"] = SCHEMA_VERSION + 1
+    with pytest.raises(ValueError, match="schema version"):
+        detail_from_dict(data)
+    with pytest.raises(ValueError, match="schema version"):
+        summary_from_dict(data)

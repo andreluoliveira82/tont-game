@@ -3,6 +3,7 @@
 Uses ``tmp_path`` so tests never touch the real user directory.
 """
 
+import json
 from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
@@ -86,3 +87,34 @@ def test_save_wraps_io_failure_in_game_history_error(tmp_path: Path) -> None:
     repository = FileGameHistoryRepository(blocker / "history")
     with pytest.raises(GameHistoryError):
         repository.save(finished_record(datetime(2026, 7, 29, 10, tzinfo=UTC)))
+
+
+def test_get_returns_the_detail_of_a_saved_game(tmp_path: Path) -> None:
+    repository = FileGameHistoryRepository(tmp_path)
+    record = finished_record(datetime(2026, 7, 29, 10, tzinfo=UTC), amount="120.50")
+    repository.save(record)
+
+    detail = repository.get(record.game_id)
+    assert detail is not None
+    assert detail.game_id == record.game_id
+    assert detail.amount_received == Money.of("120.50")
+
+
+def test_get_returns_none_when_not_found(tmp_path: Path) -> None:
+    repository = FileGameHistoryRepository(tmp_path)
+    repository.save(finished_record(datetime(2026, 7, 29, 10, tzinfo=UTC)))
+    assert repository.get(uuid4()) is None
+
+
+def test_get_returns_none_for_an_unknown_schema_version(tmp_path: Path) -> None:
+    repository = FileGameHistoryRepository(tmp_path)
+    record = finished_record(datetime(2026, 7, 29, 10, tzinfo=UTC))
+    repository.save(record)
+    # Rewrite the stored file with a future schema version.
+    stored = next(tmp_path.glob("*.json"))
+    data = json.loads(stored.read_text(encoding="utf-8"))
+    data["schema_version"] = 999
+    stored.write_text(json.dumps(data), encoding="utf-8")
+
+    assert repository.get(record.game_id) is None
+    assert repository.list_summaries() == []  # future version is skipped in listing

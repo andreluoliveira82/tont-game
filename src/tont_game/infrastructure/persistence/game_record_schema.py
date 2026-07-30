@@ -16,8 +16,12 @@ from typing import Any
 from uuid import UUID
 
 from tont_game.domain.history.game_record import GameRecord
-from tont_game.domain.history.records import EndingType, OfficialResult
-from tont_game.domain.history.repository import GameHistorySummary
+from tont_game.domain.history.records import Decision, EndingType, OfficialResult
+from tont_game.domain.history.repository import (
+    GameHistoryDetail,
+    GameHistoryRoundDetail,
+    GameHistorySummary,
+)
 from tont_game.domain.history.round_record import RoundRecord
 from tont_game.domain.value_objects.money import Money
 
@@ -44,12 +48,23 @@ def serialize(record: GameRecord) -> dict[str, Any]:
     }
 
 
+def _require_known_version(data: dict[str, Any]) -> None:
+    """Reject a payload whose schema version we do not know how to read.
+
+    Unknown (e.g. future) versions raise ``ValueError`` so callers can skip the
+    entry gracefully instead of misinterpreting it.
+    """
+    if data.get("schema_version") != SCHEMA_VERSION:
+        raise ValueError(f"Unsupported schema version: {data.get('schema_version')}")
+
+
 def summary_from_dict(data: dict[str, Any]) -> GameHistorySummary:
     """Read the lightweight summary fields from a stored dictionary.
 
-    Raises ``KeyError``/``ValueError`` on malformed data; callers decide how to
-    handle a corrupted entry.
+    Raises ``KeyError``/``ValueError`` on malformed data or an unknown schema
+    version; callers decide how to handle such an entry.
     """
+    _require_known_version(data)
     result = data["official_result"]
     return GameHistorySummary(
         game_id=UUID(data["game_id"]),
@@ -57,6 +72,42 @@ def summary_from_dict(data: dict[str, Any]) -> GameHistorySummary:
         ending_type=EndingType(result["ending_type"]),
         amount_received=Money.of(result["amount_received"]),
         player_briefcase_value=Money.of(result["player_briefcase_value"]),
+    )
+
+
+def detail_from_dict(data: dict[str, Any]) -> GameHistoryDetail:
+    """Read the full detail of a persisted game from a stored dictionary.
+
+    Raises ``KeyError``/``ValueError`` on malformed data or an unknown schema
+    version; callers decide how to handle such an entry.
+    """
+    _require_known_version(data)
+    result = data["official_result"]
+    return GameHistoryDetail(
+        game_id=UUID(data["game_id"]),
+        started_at=datetime.fromisoformat(data["started_at"]),
+        finished_at=(
+            datetime.fromisoformat(data["finished_at"]) if data["finished_at"] else None
+        ),
+        seed=data["seed"],
+        player_briefcase=data["player_briefcase"],
+        ending_type=EndingType(result["ending_type"]),
+        amount_received=Money.of(result["amount_received"]),
+        player_briefcase_value=Money.of(result["player_briefcase_value"]),
+        rounds=tuple(_round_detail(item) for item in data["rounds"]),
+    )
+
+
+def _round_detail(item: dict[str, Any]) -> GameHistoryRoundDetail:
+    offer = item["offer"]
+    return GameHistoryRoundDetail(
+        round_number=item["round"],
+        openings=tuple(
+            (opening["briefcase"], Money.of(opening["value"]))
+            for opening in item["openings"]
+        ),
+        offer=Money.of(offer["value"]) if offer else None,
+        decision=Decision(item["decision"]) if item["decision"] else None,
     )
 
 
