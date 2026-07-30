@@ -43,12 +43,35 @@ Com a **Fase 10.5** encerrou-se o **primeiro ciclo de desenvolvimento** (release
 
 A **Fase 11** (release `1.1.0`, primeira do **Roadmap 2.0**) adicionou **persistência de partidas concluídas e histórico entre execuções** como capacidade **opcional e aditiva**: cada partida é registrada automaticamente (um JSON por partida, em diretório resolvido pela infraestrutura). A persistência **nunca** impede o jogo de funcionar — falhas degradam graciosamente. O domínio permanece desacoplado da tecnologia de armazenamento (port `GameHistoryRepository`; ver [ADR 0007](docs/decisions/0007-persistencia-do-historico.md)).
 
-A **Fase 12** (release `1.2.0`) completou a experiência de histórico: além de listar (`tont-game history`), o jogador pode **inspecionar uma partida** em detalhe com `tont-game history show <id>`. Ainda **não** há analytics nem GUI. As demais evoluções seguem no **Roadmap 2.1** (Fases 13+, ainda não iniciadas) — ver [`roadmap.md`](docs/roadmap.md).
+A **Fase 12** (release `1.2.0`) completou a experiência de histórico: além de listar (`tont-game history`), o jogador pode **inspecionar uma partida** em detalhe com `tont-game history show <id>`.
+
+A **Release 1.3.0** tornou a CLI **descobrível e instalável**: `tont-game --help`/`--version`, ajuda dos subcomandos e instalação via `pipx`/`uvx` — **sem** publicar no PyPI (adiado). Ainda **não** há analytics nem GUI. As demais evoluções seguem no **Roadmap 2.1** (Fases 14+, ainda não iniciadas) — ver [`roadmap.md`](docs/roadmap.md).
 
 ## Requisitos
 
 - Python 3.13+
 - [`uv`](https://docs.astral.sh/uv/)
+
+## Instalação (para jogar)
+
+A partir de um clone local do projeto, sem precisar do ambiente de desenvolvimento:
+
+```bash
+uvx --from . tont-game        # executa sem instalar (isolado)
+pipx install .                # instala o comando "tont-game"
+```
+
+Depois de instalado, comece por `tont-game --help`, que lista todos os comandos.
+Uma vez publicado o repositório, a instalação direta do GitHub também funcionará
+(`uvx --from git+https://github.com/andreluoliveira82/tont-game tont-game`).
+
+Quick Start:
+
+```bash
+tont-game            # jogar
+tont-game --help     # ver todos os comandos
+tont-game history    # rever partidas anteriores
+```
 
 ## Como configurar e validar
 

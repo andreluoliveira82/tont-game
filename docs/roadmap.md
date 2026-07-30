@@ -480,19 +480,37 @@ Principais entregas:
 
 ---
 
+# Fase 13 — Usabilidade e instalabilidade da CLI
+
+**Status:** ✅ Concluída — release `1.3.0`. Núcleo mínimo da distribuição aprovada, com foco em descoberta e instalação.
+
+Torna a CLI multi-comando **descobrível e instalável por um leigo**, sem assumir
+as obrigações contínuas de publicar no PyPI (adiado até haver driver). Sem novas
+dependências; despacho artesanal preservado; comandos existentes inalterados.
+
+Principais entregas:
+
+- **`tont-game --help`/`-h`** cobrindo toda a superfície pública (jogar/seed, `history`, `history show`, `--version`, `--help`); **`--version`/`-v`**; e **`history --help`**.
+- **Instalação documentada e validada** via `pipx`/`uvx` (a partir de um clone), com Quick Start para não-desenvolvedores.
+
+**Deliberadamente fora (backlog):** publicação no PyPI; executáveis standalone; framework de CLI.
+
+**Critério de saída:** um leigo instala e descobre todos os comandos sem ler código; nenhum comando existente muda. ✅ Atendido.
+
+---
+
 # Roadmap 2.1 — Fases futuras (propostas, NÃO aprovadas)
 
-As Fases 0–10.5 constituem o **Ciclo 1**; as **Fases 11 e 12** (acima) abriram o
-Roadmap 2.0/2.1 e estão concluídas. As fases a seguir são **propostas de evolução
-— ainda NÃO aprovadas** para implementação; cada uma exige autorização explícita
-e não deve ser iniciada automaticamente.
+As Fases 0–10.5 constituem o **Ciclo 1**; as **Fases 11, 12 e 13** (acima) já estão
+concluídas. As fases a seguir são **propostas de evolução — ainda NÃO aprovadas**
+para implementação; cada uma exige autorização explícita e não deve ser iniciada
+automaticamente.
 
-- **Fase 13 (proposta) — Distribuição para jogadores reais:** empacotamento/publicação do console script já existente, para uso por não-desenvolvedores.
 - **Fase 14 (proposta) — Superfície de configuração:** expor valores/sequência/percentuais/estratégia (já injetáveis no código), orientada a um driver concreto.
 - **Fase 15 (proposta) — Analytics / visão administrativa:** análise do histórico acumulado; depende de volume de dados reais (a fundação de leitura já existe desde a Fase 12).
 - **Fase 16 (proposta) — GUI:** segunda interface gráfica reutilizando o núcleo, somente com demanda validada.
 
-**Backlog não priorizado:** `history stats`/`export`; simulação progressiva/retrospectiva pós-Topa; estratégias alternativas do Banqueiro; reconfiguração estrutural das regras; estratégia de migração de schema; observabilidade/logging; internacionalização; remoção do `GameStatus.FINAL_REVEAL` (dívida cosmética).
+**Backlog não priorizado:** publicação no PyPI/executáveis; `history stats`/`export`; simulação progressiva/retrospectiva pós-Topa; estratégias alternativas do Banqueiro; reconfiguração estrutural das regras; estratégia de migração de schema; observabilidade/logging; internacionalização; remoção do `GameStatus.FINAL_REVEAL` (dívida cosmética).
 
 ---
 
