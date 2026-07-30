@@ -307,16 +307,19 @@ function ghostsEl(){
   refused.forEach(v=>wrap.appendChild(el("div","ghost",money(v))));
   return wrap;
 }
-const OFFER_LINES=["o telefone toca…","o banqueiro está pensando…","o silêncio pesa no estúdio…",
-  "uma pausa longa…","ele parece confiante…","o estúdio prende a respiração…","ele não tem pressa…"];
-function pickTwo(a){const x=a[Math.floor(Math.random()*a.length)];let y=x;
-  while(y===x)y=a[Math.floor(Math.random()*a.length)];return[x,y];}
-async function sayLine(text){focal.innerHTML="";focal.appendChild(el("div","kicker pulse",text));await beat(1500);}
+const OFFER_LINES=["o telefone toca…","o banqueiro ficou em silêncio…","ele está olhando o painel…",
+  "ele percebeu algo…","essa oferta parece importante…","acho que ele quer que você desista agora…",
+  "ele ainda não respondeu…","o telefone continua mudo…","o estúdio inteiro está esperando…",
+  "ele não tem pressa…","o silêncio pesa no estúdio…","ele parece confiante…"];
+function pickN(a,n){const pool=[...a],out=[];while(out.length<n&&pool.length)out.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);return out;}
+async function sayLine(text,ms){focal.innerHTML="";focal.appendChild(el("div","kicker pulse",text));await beat(ms);}
 async function playOffer(view){
   setMood("tense");S.phone();
-  const[l1,l2]=pickTwo(OFFER_LINES);
-  await sayLine(l1);await sayLine(l2);   /* the wait: the Banker builds tension, never math */
-  setMood(null);buildOffer(view,true);   /* then the number lands; the board stays for comparison */
+  const r=view.current_round;                       /* tension rises with the round */
+  const n=r<=3?1:r<=6?2:3;                            /* later: more lines, longer, quieter */
+  for(const line of pickN(OFFER_LINES,n))await sayLine(line,1150+r*90);
+  focal.innerHTML="";await beat(420+r*90);           /* a beat of pure silence before the number */
+  setMood(null);buildOffer(view,true);               /* the number lands; the board stays for comparison */
 }
 
 function revealMood(view){
