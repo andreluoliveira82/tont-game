@@ -19,7 +19,10 @@
     letter-spacing:.2px;transition:background 1200ms var(--ease);}
   #glow{position:fixed;inset:0;z-index:1;pointer-events:none;
     background:radial-gradient(56% 44% at 50% 40%, rgba(232,200,119,.20), transparent 70%);
-    opacity:.5;transition:opacity 1200ms var(--ease),filter 1200ms var(--ease);}
+    opacity:.5;transition:opacity 1200ms var(--ease),filter 1200ms var(--ease);
+    animation:glowBreath 9s ease-in-out infinite;}          /* the light never stops breathing */
+  @keyframes glowBreath{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
+  #dust{position:fixed;inset:0;z-index:1;pointer-events:none;}
   body.tense #glow{opacity:.16;filter:saturate(.6);}
   body.warm #glow{opacity:.62;}
   body.cool #glow{opacity:.12;filter:hue-rotate(195deg) saturate(.5);}
@@ -174,6 +177,7 @@
 </head>
 <body>
 <div id="glow"></div>
+<canvas id="dust"></canvas>
 <div class="arena">
   <aside class="rail left" id="railL"></aside>
   <main class="stage">
@@ -203,8 +207,26 @@ function tone({freq=440,freq2=null,type="sine",dur=.12,gain=.04,at=.005,delay=0}
   g.gain.exponentialRampToValueAtTime(.0001,t+dur);
   o.connect(g).connect(c.destination);o.start(t);o.stop(t+dur+.03);
 }
+/* studio soundscape: a low room tone + a deep ambient drone, always present, ducking per scene */
+let AMB=null;
+function ambStart(){
+  const c=ac();if(!c||AMB)return;
+  const buf=c.createBuffer(1,c.sampleRate*2,c.sampleRate),data=buf.getChannelData(0);
+  for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1;
+  const noise=c.createBufferSource();noise.buffer=buf;noise.loop=true;
+  const lp=c.createBiquadFilter();lp.type="lowpass";lp.frequency.value=380;
+  const ng=c.createGain();ng.gain.value=.010;
+  noise.connect(lp).connect(ng).connect(c.destination);noise.start();
+  const o=c.createOscillator();o.type="sine";o.frequency.value=56;
+  const og=c.createGain();og.gain.value=.011;
+  o.connect(og).connect(c.destination);o.start();
+  AMB={c,ng,og};
+}
+function ambSet(level,dur){if(!AMB)return;const t=AMB.c.currentTime,d=dur||1.2;
+  AMB.ng.gain.linearRampToValueAtTime(.010*level,t+d);
+  AMB.og.gain.linearRampToValueAtTime(.011*level,t+d);}
 const S={
-  click(){tone({freq:1700,type:"square",dur:.045,gain:.02});tone({freq:520,type:"triangle",dur:.09,gain:.02});},
+  click(){ambStart();tone({freq:1700,type:"square",dur:.045,gain:.02});tone({freq:520,type:"triangle",dur:.09,gain:.02});},
   open(value,max){                                   /* the sound narrates the magnitude */
     const b=Math.min(1,value/(max||1));
     if(b<0.03){tone({freq:1000,freq2:1500,type:"sine",dur:.13,gain:.03});}          /* relief chirp */
@@ -443,6 +465,22 @@ async function render(view){
   else sceneEndgame(view);
   prevStatus=s;
 }
+/* the living stage: golden dust drifting, always alive */
+(function dust(){
+  const cv=document.getElementById("dust"),cx=cv.getContext("2d");let W,H,parts=[];
+  function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight;
+    const n=Math.min(48,Math.round(W*H/40000));
+    parts=Array.from({length:n},()=>({x:Math.random()*W,y:Math.random()*H,
+      r:Math.random()*1.6+.4,s:Math.random()*.24+.05,a:Math.random()*.4+.1,tw:Math.random()*6.28}));}
+  addEventListener("resize",resize);resize();
+  function draw(t){cx.clearRect(0,0,W,H);
+    for(const p of parts){p.y-=p.s;p.x+=Math.sin(t/3000+p.tw)*.14;if(p.y<-4){p.y=H+4;p.x=Math.random()*W;}
+      const tw=.6+.4*Math.sin(t/1200+p.tw);
+      cx.beginPath();cx.arc(p.x,p.y,p.r,0,6.29);
+      cx.fillStyle="rgba(232,200,119,"+(p.a*tw*.5).toFixed(3)+")";cx.fill();}}
+  if(reduce){draw(0);}else{(function loop(t){draw(t);requestAnimationFrame(loop);})(0);}
+})();
+
 start();
 </script>
 </body>
