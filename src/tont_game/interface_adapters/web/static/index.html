@@ -23,6 +23,7 @@
     animation:glowBreath 9s ease-in-out infinite;}          /* the light never stops breathing */
   @keyframes glowBreath{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
   #dust{position:fixed;inset:0;z-index:1;pointer-events:none;}
+  #fx{position:fixed;inset:0;z-index:7;pointer-events:none;}
   body.tense #glow{opacity:.16;filter:saturate(.6);}
   body.warm #glow{opacity:.62;}
   body.cool #glow{opacity:.12;filter:hue-rotate(195deg) saturate(.5);}
@@ -180,6 +181,7 @@
 <body>
 <div id="glow"></div>
 <canvas id="dust"></canvas>
+<canvas id="fx"></canvas>
 <div class="arena">
   <aside class="rail left" id="railL"></aside>
   <main class="stage">
@@ -254,7 +256,7 @@ const railL=document.getElementById("railL"),railR=document.getElementById("rail
 const focal=document.getElementById("focal"),hud=document.getElementById("hud"),errBox=document.getElementById("err");
 
 async function post(p,d){const r=await fetch(p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(d||{})});return r.json();}
-async function start(){document.body.className="";railBuilt=false;refused=[];railL.innerHTML="";railR.innerHTML="";valNodes.clear();
+async function start(){document.body.className="";railBuilt=false;refused=[];railL.innerHTML="";railR.innerHTML="";valNodes.clear();ambSet(1,.6);
   const d=await post("/api/start",{});sessionId=d.session_id;prevStatus=null;
   await intro();render(d.view);}
 async function intro(){
@@ -317,7 +319,8 @@ function killValue(value,isHigh,isApex){
   node.classList.add("dying");if(isHigh)node.classList.add("big");
   setTimeout(()=>node.classList.remove("dying","big"),isHigh?700:520);
   if(isApex){const a=document.querySelector(".arena");a.classList.add("flinch");
-    setTimeout(()=>a.classList.remove("flinch"),520);}   /* the palco feels the top prize die */
+    setTimeout(()=>a.classList.remove("flinch"),520);
+    const b=node.getBoundingClientRect();FX.shatter(b.left+b.width/2,b.top+b.height/2);} /* the top prize shatters */
 }
 
 function myCaseEl(view,reveal){
@@ -433,21 +436,24 @@ function revealControls(view){
   return row;
 }
 async function buildReveal(view,animate){
-  const r=view.official_result,m=revealStory(view);
+  const r=view.official_result,m=revealStory(view),win=(m.mood==="apotheosis"||m.mood==="warm");
   if(animate){                                   /* the held breath before the truth */
-    setMood("tense");focal.innerHTML="";
+    setMood("tense");ambSet(.5,.8);focal.innerHTML="";
     focal.appendChild(el("div","kicker pulse","o momento da verdade…"));
-    await beat(2300);
+    await beat(win?2200:2700);                   /* tragedy waits longer, colder */
   }
-  setMood(m.mood);                               /* the world transforms with the outcome */
-  if(animate)(m.mood==="apotheosis"?S.triumph():(m.mood==="warm"?S.win():S.loss()));
+  setMood(m.mood);                               /* two different universes */
+  if(animate){
+    if(win){ambSet(1.9,1.6);(m.mood==="apotheosis"?S.triumph():S.win());FX.confetti(m.mood==="apotheosis"?180:70);}
+    else{ambSet(.10,2.4);S.loss();}              /* the stage goes cold and quiet */
+  }
   focal.innerHTML="";
   const mine=myCaseEl(view,true);if(mine)focal.appendChild(mine);
   focal.append(el("div","kicker","você levou"),
     el("div","offer amount "+(m.gold?"gold":"sober")+" "+(animate?"land":"fade-in"),money(r.amount_received)));
-  if(animate)await beat(1300);
+  if(animate)await beat(win?1500:1300);
   focal.appendChild(el("div","verdict "+(m.gold?"win":"lose")+(animate?" fade-in":""),m.tag));
-  if(animate)await beat(650);
+  if(animate)await beat(win?800:950);
   focal.appendChild(el("div","lead"+(animate?" fade-in":""),m.head));   /* the honest story */
   if(animate)await beat(900);
   focal.appendChild(el("div","lead"+(animate?" fade-in":""),`A sua maleta guardava ${money(r.player_briefcase_value)}.`));
@@ -455,7 +461,7 @@ async function buildReveal(view,animate){
     if(animate)await beat(750);
     focal.appendChild(el("div","lead fade-in",
       `Se tivesse seguido: ${money(s.hypothetical)} — ${s.hypothetical_is_higher?"teria ganhado mais.":"você fez bem em aceitar."}`));}
-  if(animate)await beat(1000);                   /* a dignified pause — the curtain falls */
+  if(animate)await beat(win?1500:1200);          /* time to feel it before the controls */
   focal.appendChild(el("div","curtain fade-in","— fim de jogo —"));
   focal.appendChild(revealControls(view));
 }
@@ -470,6 +476,27 @@ async function render(view){
   else sceneEndgame(view);
   prevStatus=s;
 }
+/* particle FX: confetti for victory, a golden shatter when the top prize dies */
+const FX=(function(){
+  const cv=document.getElementById("fx"),cx=cv.getContext("2d");let W,H,ps=[],running=false;
+  function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight;}addEventListener("resize",resize);resize();
+  function loop(){cx.clearRect(0,0,W,H);let alive=false;
+    for(const p of ps){if(p.age>=p.life)continue;alive=true;p.age+=.016;p.vy+=p.g;p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;
+      const k=Math.max(0,1-p.age/p.life);cx.save();cx.globalAlpha=k;cx.fillStyle=p.col;
+      if(p.flat){cx.translate(p.x,p.y);cx.rotate(p.rot);cx.fillRect(-p.r,-p.r*.4,p.r*2,p.r*.8);}
+      else{cx.beginPath();cx.arc(p.x,p.y,p.r*k,0,6.29);cx.fill();}cx.restore();}
+    if(alive)requestAnimationFrame(loop);else{running=false;cx.clearRect(0,0,W,H);}}
+  function go(){if(!running){running=true;requestAnimationFrame(loop);}}
+  return{
+    confetti(count){if(reduce)return;for(let i=0;i<count;i++)setTimeout(()=>{
+      ps.push({x:Math.random()*W,y:-12,vx:(Math.random()-.5)*1.6,vy:1+Math.random()*1.6,g:.05,
+        r:3+Math.random()*3,life:3.4,age:0,rot:Math.random()*6.28,vr:(Math.random()-.5)*.3,flat:true,
+        col:Math.random()<.72?"#e8c877":"#fff2cf"});go();},Math.random()*1100);},
+    shatter(x,y){if(reduce)return;for(let i=0;i<24;i++){const a=Math.random()*6.28,sp=2+Math.random()*4;
+      ps.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-1,g:.12,r:2+Math.random()*2,life:.9,age:0,rot:0,vr:0,flat:false,col:"#e8c877"});}go();},
+  };
+})();
+
 /* the living stage: golden dust drifting, always alive */
 (function dust(){
   const cv=document.getElementById("dust"),cx=cv.getContext("2d");let W,H,parts=[];
