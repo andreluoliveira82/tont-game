@@ -5,6 +5,20 @@ Todas as mudanças relevantes deste projeto são documentadas aqui.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e o projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [1.2.0] - 2026-07-29
+
+Conclusão da experiência de histórico (Roadmap 2.1, Fase 12): além de listar, é
+possível inspecionar uma partida em detalhe. Escopo mínimo — sem stats/export.
+
+### Adicionado
+
+- Read models `GameHistoryDetail`/`GameHistoryRoundDetail` e o método `get(id)`
+  na porta `GameHistoryRepository`; caso de uso `GetGameHistoryDetail`.
+- Desserialização completa sobre o schema público, com guarda de versão
+  desconhecida (futura) tratada graciosamente (em `get` e na listagem).
+- Comando `tont-game history show <id>` (id inválido, partida inexistente e
+  falha de leitura tratados graciosamente).
+
 ## [1.1.0] - 2026-07-29
 
 Primeira fase do Roadmap 2.0: persistência de partidas concluídas e histórico
@@ -63,5 +77,6 @@ com regras corretas e reprodutibilidade por seed.
 - As evoluções futuras estão organizadas no "Roadmap 2.0" (Fases 11+), ainda
   não aprovadas para implementação.
 
+[1.2.0]: https://github.com/andreluoliveira82/tont-game/releases/tag/v1.2.0
 [1.1.0]: https://github.com/andreluoliveira82/tont-game/releases/tag/v1.1.0
 [1.0.0]: https://github.com/andreluoliveira82/tont-game/releases/tag/v1.0.0
