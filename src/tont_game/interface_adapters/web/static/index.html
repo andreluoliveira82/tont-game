@@ -26,6 +26,11 @@
   @keyframes glowBreath{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
   #dust{position:fixed;inset:0;z-index:1;pointer-events:none;}
   #fx{position:fixed;inset:0;z-index:7;pointer-events:none;}
+  #alert{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0;
+    background:radial-gradient(96% 76% at 50% 45%, rgba(196,44,44,.20), transparent 70%);
+    transition:opacity .6s var(--ease);}
+  body.call #alert{opacity:1;animation:redPulse 1.5s ease-in-out infinite;}   /* the phone rings in red */
+  @keyframes redPulse{0%,100%{opacity:.28;}50%{opacity:.9;}}
   body.tense #glow{opacity:.16;filter:saturate(.6);}
   body.warm #glow{opacity:.62;}
   body.cool #glow{opacity:.12;filter:hue-rotate(195deg) saturate(.5);}
@@ -140,6 +145,7 @@
     text-shadow:0 0 60px rgba(232,200,119,.28);}
   body.apotheosis .offer{text-shadow:0 0 100px rgba(232,200,119,.6);}
   body.cool .offer,body.floor .offer{text-shadow:none;}
+  .offer.win-big{font-size:clamp(3rem,15vw,7rem);}     /* victory overwhelms the screen */
 
   .choices{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
   button.act{appearance:none;cursor:pointer;color:var(--ink);font-family:ui-sans-serif,system-ui,sans-serif;
@@ -192,6 +198,7 @@
 </head>
 <body>
 <div id="glow"></div>
+<div id="alert"></div>
 <canvas id="dust"></canvas>
 <canvas id="fx"></canvas>
 <div class="arena">
@@ -462,7 +469,7 @@ async function buildReveal(view,animate){
   focal.innerHTML="";
   const mine=myCaseEl(view,true);if(mine)focal.appendChild(mine);
   focal.append(el("div","kicker","você levou"),
-    el("div","offer amount "+(m.gold?"gold":"sober")+" "+(animate?"land":"fade-in"),money(r.amount_received)));
+    el("div","offer amount "+(m.gold?"gold":"sober")+(win?" win-big":"")+" "+(animate?"land":"fade-in"),money(r.amount_received)));
   if(animate)await beat(win?1500:1300);
   focal.appendChild(el("div","verdict "+(m.gold?"win":"lose")+(animate?" fade-in":""),m.tag));
   if(animate)await beat(win?800:950);
