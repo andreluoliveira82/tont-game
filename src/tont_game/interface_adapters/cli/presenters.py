@@ -267,6 +267,32 @@ def history_detail(detail: GameHistoryDetail) -> str:
     return "\n".join(lines)
 
 
+def help_text() -> str:
+    """Top-level CLI help covering the whole public command surface."""
+    return (
+        "tont-game — Topa ou Não Topa (CLI)\n"
+        "\n"
+        "Uso:\n"
+        "  tont-game [SEED]           Joga uma partida (SEED opcional)\n"
+        "  tont-game history          Lista suas partidas anteriores\n"
+        "  tont-game history show ID  Detalha uma partida pelo id\n"
+        "  tont-game --version        Mostra a versão\n"
+        "  tont-game --help           Mostra esta ajuda"
+    )
+
+
+def version_line(version: str) -> str:
+    return f"tont-game {version}"
+
+
+def history_usage() -> str:
+    return (
+        "Uso do histórico:\n"
+        "  tont-game history          Lista suas partidas anteriores\n"
+        "  tont-game history show ID  Detalha uma partida pelo id"
+    )
+
+
 def aborted() -> str:
     return "\nPartida encerrada. Até a próxima!"
 

@@ -199,6 +199,25 @@ def test_simulation_comparison_tie() -> None:
     assert "Daria no mesmo." in text
 
 
+def test_help_text_covers_the_public_surface() -> None:
+    text = presenters.help_text()
+    assert "tont-game [SEED]" in text
+    assert "history" in text
+    assert "history show" in text
+    assert "--version" in text
+    assert "--help" in text
+
+
+def test_version_line() -> None:
+    assert presenters.version_line("1.3.0") == "tont-game 1.3.0"
+
+
+def test_history_usage_lists_commands() -> None:
+    text = presenters.history_usage()
+    assert "history" in text
+    assert "history show" in text
+
+
 def test_aborted_message() -> None:
     assert "Partida encerrada" in presenters.aborted()
 

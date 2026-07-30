@@ -7,12 +7,14 @@ history repository into the CLI. It dispatches on the first argument:
 - ``python -m tont_game 42``         → play a reproducible game (seed 42)
 - ``python -m tont_game history``    → list past games
 
-The dispatch is organized so future history subcommands (``show``, ``stats``,
-``export``) can be added without breaking the existing commands.
+It also accepts ``--help``/``-h`` and ``--version``/``-v``. The dispatch is
+organized so future history subcommands (``show``, ``stats``, ``export``) can be
+added without breaking the existing commands.
 """
 
 import sys
 
+from tont_game import __version__
 from tont_game.domain.services.banker import DefaultBankerStrategy
 from tont_game.infrastructure.clock import SystemClock
 from tont_game.infrastructure.identifiers import UuidGameIdGenerator
@@ -26,6 +28,9 @@ from tont_game.interface_adapters.cli.controller import CliController
 from tont_game.interface_adapters.cli.history_controller import HistoryController
 from tont_game.interface_adapters.cli.views import Console, TerminalConsole
 
+_HELP_FLAGS = frozenset({"-h", "--help"})
+_VERSION_FLAGS = frozenset({"-v", "--version"})
+
 
 def _parse_seed(args: list[str]) -> int | None:
     if not args:
@@ -37,6 +42,10 @@ def _parse_seed(args: list[str]) -> int | None:
 
 
 def _select_command(args: list[str]) -> str:
+    if args and args[0] in _HELP_FLAGS:
+        return "help"
+    if args and args[0] in _VERSION_FLAGS:
+        return "version"
     if args and args[0] == "history":
         return "history"
     return "play"
@@ -49,6 +58,8 @@ def _run_history(
     subcommand = args[1] if len(args) > 1 else None
     if subcommand is None:
         controller.list()
+    elif subcommand in _HELP_FLAGS:
+        console.write(presenters.history_usage())
     elif subcommand == "show":
         if len(args) > 2:
             controller.show(args[2])
@@ -61,9 +72,17 @@ def _run_history(
 def main(argv: list[str] | None = None) -> None:
     args = sys.argv[1:] if argv is None else argv
     console = TerminalConsole()
-    repository = FileGameHistoryRepository(history_directory())
 
-    if _select_command(args) == "history":
+    command = _select_command(args)
+    if command == "help":
+        console.write(presenters.help_text())
+        return
+    if command == "version":
+        console.write(presenters.version_line(__version__))
+        return
+
+    repository = FileGameHistoryRepository(history_directory())
+    if command == "history":
         _run_history(args, console, repository)
         return
 
