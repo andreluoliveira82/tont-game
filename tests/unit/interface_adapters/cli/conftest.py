@@ -14,7 +14,11 @@ from uuid import UUID, uuid4
 import pytest
 
 from tont_game.domain.history.game_record import GameRecord
-from tont_game.domain.history.repository import GameHistoryError, GameHistorySummary
+from tont_game.domain.history.repository import (
+    GameHistoryDetail,
+    GameHistoryError,
+    GameHistorySummary,
+)
 from tont_game.domain.services.banker import DefaultBankerStrategy
 from tont_game.interface_adapters.cli.controller import CliController
 from tont_game.interface_adapters.cli.history_controller import HistoryController
@@ -23,16 +27,24 @@ T = TypeVar("T")
 
 
 class _StubHistoryRepository:
-    """Returns a fixed list of summaries (for listing tests)."""
+    """Returns fixed summaries and/or a fixed detail (for listing/show tests)."""
 
-    def __init__(self, summaries: Sequence[GameHistorySummary]) -> None:
+    def __init__(
+        self,
+        summaries: Sequence[GameHistorySummary] = (),
+        detail: GameHistoryDetail | None = None,
+    ) -> None:
         self._summaries = list(summaries)
+        self._detail = detail
 
     def save(self, record: GameRecord) -> None:  # pragma: no cover - unused here
         raise NotImplementedError
 
     def list_summaries(self) -> list[GameHistorySummary]:
         return list(self._summaries)
+
+    def get(self, game_id: object) -> GameHistoryDetail | None:
+        return self._detail
 
 
 class FakeHistoryRepository:
@@ -55,6 +67,9 @@ class FailingHistoryRepository:
         raise GameHistoryError("boom")
 
     def list_summaries(self) -> list[GameHistorySummary]:
+        raise GameHistoryError("boom")
+
+    def get(self, game_id: object) -> GameHistoryDetail | None:
         raise GameHistoryError("boom")
 
 
@@ -162,6 +177,28 @@ def run_history():
             FailingHistoryRepository() if failing else _StubHistoryRepository(summaries)
         )
         HistoryController(console, repository).list()  # type: ignore[arg-type]
+        return console
+
+    return _run
+
+
+@pytest.fixture
+def run_history_show():
+    """Run the history-show command and return the recording console."""
+
+    def _run(
+        raw_id: str,
+        *,
+        detail: GameHistoryDetail | None = None,
+        failing: bool = False,
+    ) -> FakeConsole:
+        console = FakeConsole([])
+        repository = (
+            FailingHistoryRepository()
+            if failing
+            else _StubHistoryRepository(detail=detail)
+        )
+        HistoryController(console, repository).show(raw_id)  # type: ignore[arg-type]
         return console
 
     return _run

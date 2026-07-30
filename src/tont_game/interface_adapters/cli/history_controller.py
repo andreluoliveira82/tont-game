@@ -5,6 +5,11 @@ Kept separate from the game loop (SRP) and organized so future subcommands
 breaking compatibility. Reading failures degrade gracefully.
 """
 
+from uuid import UUID
+
+from tont_game.application.use_cases.get_game_history_detail import (
+    GetGameHistoryDetail,
+)
 from tont_game.application.use_cases.list_game_history import ListGameHistory
 from tont_game.domain.history.repository import (
     GameHistoryError,
@@ -29,3 +34,19 @@ class HistoryController:
             self._console.write(presenters.history_empty())
             return
         self._console.write(presenters.history_list(summaries))
+
+    def show(self, raw_id: str) -> None:
+        try:
+            game_id = UUID(raw_id)
+        except ValueError:
+            self._console.write(presenters.history_invalid_id(raw_id))
+            return
+        try:
+            detail = GetGameHistoryDetail(self._repository).execute(game_id)
+        except GameHistoryError:
+            self._console.write(presenters.history_unavailable())
+            return
+        if detail is None:
+            self._console.write(presenters.history_not_found())
+            return
+        self._console.write(presenters.history_detail(detail))

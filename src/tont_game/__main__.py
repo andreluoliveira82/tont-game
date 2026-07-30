@@ -45,9 +45,15 @@ def _select_command(args: list[str]) -> str:
 def _run_history(
     args: list[str], console: Console, repository: FileGameHistoryRepository
 ) -> None:
+    controller = HistoryController(console, repository)
     subcommand = args[1] if len(args) > 1 else None
     if subcommand is None:
-        HistoryController(console, repository).list()
+        controller.list()
+    elif subcommand == "show":
+        if len(args) > 2:
+            controller.show(args[2])
+        else:
+            console.write(presenters.history_show_usage())
     else:
         console.write(presenters.history_unknown_subcommand(subcommand))
 

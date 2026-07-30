@@ -14,8 +14,11 @@ from tont_game.domain.errors import (
     PlayerBriefcaseProtectedError,
     RoundLimitExceededError,
 )
-from tont_game.domain.history.records import EndingType, OfficialResult
-from tont_game.domain.history.repository import GameHistorySummary
+from tont_game.domain.history.records import Decision, EndingType, OfficialResult
+from tont_game.domain.history.repository import (
+    GameHistoryDetail,
+    GameHistorySummary,
+)
 from tont_game.domain.simulation.post_game_simulation import SimulationResult
 from tont_game.domain.value_objects.money import Money
 
@@ -216,6 +219,52 @@ def history_unavailable() -> str:
 
 def history_unknown_subcommand(name: str) -> str:
     return f"Subcomando de histórico desconhecido: {name}"
+
+
+def history_show_usage() -> str:
+    return "Uso: tont-game history show <id>"
+
+
+def history_invalid_id(raw_id: str) -> str:
+    return f"Identificador de partida inválido: {raw_id}"
+
+
+def history_not_found() -> str:
+    return "Partida não encontrada no seu histórico."
+
+
+_DECISION_LABELS = {Decision.ACCEPT: "Topa", Decision.REJECT: "Não Topa"}
+
+
+def history_detail(detail: GameHistoryDetail) -> str:
+    """Full, readable view of a single persisted game."""
+    when = detail.finished_at.strftime("%d/%m/%Y %H:%M") if detail.finished_at else "—"
+    label = _ENDING_LABELS.get(detail.ending_type, detail.ending_type.value)
+    seed = f" · seed {detail.seed}" if detail.seed is not None else ""
+    lines = [
+        f"Partida {detail.game_id}",
+        f"Encerrada em {when}{seed}",
+        f"Sua maleta: {detail.player_briefcase} "
+        f"(valia {format_money(detail.player_briefcase_value)})",
+        f"Desfecho: {label} · você levou {format_money(detail.amount_received)}",
+    ]
+    if detail.rounds:
+        lines.append("Rodadas:")
+        for round_detail in detail.rounds:
+            opened = (
+                ", ".join(
+                    f"{number} ({format_money(value)})"
+                    for number, value in round_detail.openings
+                )
+                or "—"
+            )
+            offer = format_money(round_detail.offer) if round_detail.offer else "—"
+            decision = _DECISION_LABELS.get(round_detail.decision, "—")
+            lines.append(
+                f"- Rodada {round_detail.round_number}: abriu {opened} "
+                f"· oferta {offer} · {decision}"
+            )
+    return "\n".join(lines)
 
 
 def aborted() -> str:
