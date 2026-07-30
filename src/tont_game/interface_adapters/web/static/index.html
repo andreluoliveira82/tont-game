@@ -146,6 +146,8 @@
   .ghosts.haunt .ghost-label{color:var(--danger);}
   .ghosts.haunt .ghost.peak{color:var(--danger);border-color:rgba(201,115,107,.42);
     text-shadow:0 0 13px rgba(201,115,107,.4);}
+  .haunt-line{width:100%;color:var(--danger);font-size:clamp(.92rem,3.2vw,1.18rem);
+    text-shadow:0 0 16px rgba(201,115,107,.35);}
   .opened{display:flex;flex-direction:column;align-items:center;gap:8px;}
   .opened-num{color:var(--faint);font-family:ui-sans-serif,system-ui,sans-serif;font-size:.68rem;
     letter-spacing:.28em;text-transform:uppercase;}
@@ -356,7 +358,8 @@ function buildOffer(view,animate){
 function ghostsEl(view){
   const cur=Number(view.current_offer),maxRef=Math.max(...refused),shrinking=cur<maxRef;
   const wrap=el("div","ghosts fade-in"+(shrinking?" haunt":""));
-  wrap.appendChild(el("div","ghost-label",shrinking?"você já recusou até":"você já recusou"));
+  if(shrinking)wrap.appendChild(el("div","haunt-line","você já teve "+money(maxRef)+" na mão…"));
+  else wrap.appendChild(el("div","ghost-label","você já recusou"));
   refused.forEach(v=>wrap.appendChild(el("div","ghost"+(v===maxRef?" peak":""),money(v))));
   return wrap;
 }
@@ -370,8 +373,9 @@ async function playOffer(view){
   setMood("tense");S.phone();
   const r=view.current_round;                       /* tension rises with the round */
   const n=r<=3?1:r<=6?2:3;                            /* later: more lines, longer, quieter */
-  for(const line of pickN(OFFER_LINES,n))await sayLine(line,1150+r*90);
-  focal.innerHTML="";await beat(420+r*90);           /* a beat of pure silence before the number */
+  for(const line of pickN(OFFER_LINES,n))await sayLine(line,1250+r*110);
+  await sayLine("…",700+r*70);                        /* he listens */
+  focal.innerHTML="";await beat(500+r*140);           /* the silence deepens with tension */
   setMood(null);buildOffer(view,true);               /* the number lands; the board stays for comparison */
 }
 
