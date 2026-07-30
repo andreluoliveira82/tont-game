@@ -34,6 +34,9 @@
   .arena{position:relative;z-index:2;height:100dvh;display:grid;
     grid-template-columns:minmax(74px,132px) minmax(0,1fr) minmax(74px,132px);
     gap:clamp(6px,1.4vw,18px);padding:clamp(8px,2vw,22px);align-items:stretch;}
+  .arena.flinch{animation:flinch .5s var(--ease);}
+  @keyframes flinch{0%,100%{transform:none;}18%{transform:translate(-5px,2px);}
+    44%{transform:translate(5px,-1px);}70%{transform:translate(-3px,1px);}}
 
   /* value board — the protagonist that hugs the stage */
   .rail{display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;
@@ -200,7 +203,18 @@ function tone({freq=440,freq2=null,type="sine",dur=.12,gain=.04,at=.005,delay=0}
 }
 const S={
   click(){tone({freq:1700,type:"square",dur:.045,gain:.02});tone({freq:520,type:"triangle",dur:.09,gain:.02});},
-  open(isHigh){tone({freq:isHigh?300:640,freq2:isHigh?135:520,type:"sawtooth",dur:.34,gain:.035});},
+  open(value,max){                                   /* the sound narrates the magnitude */
+    const b=Math.min(1,value/(max||1));
+    if(b<0.03){tone({freq:1000,freq2:1500,type:"sine",dur:.13,gain:.03});}          /* relief chirp */
+    else if(b<0.15){tone({freq:760,freq2:920,type:"triangle",dur:.14,gain:.03});}
+    else if(b<0.45){tone({freq:420,type:"triangle",dur:.18,gain:.035});}
+    else if(b<0.8){tone({freq:260,freq2:170,type:"sawtooth",dur:.34,gain:.045});}
+    else{                                                                            /* a big one — pain */
+      tone({freq:150,freq2:64,type:"sawtooth",dur:.62,gain:.06});
+      tone({freq:92,type:"sine",dur:.82,gain:.055,delay:.03});
+      tone({freq:210,type:"square",dur:.28,gain:.02,delay:.02});
+    }
+  },
   phone(){tone({freq:480,type:"sine",dur:.16,gain:.028});tone({freq:640,type:"sine",dur:.16,gain:.028,delay:.24});},
   land(){tone({freq:170,freq2:85,type:"sine",dur:.6,gain:.06});tone({freq:760,type:"sine",dur:.22,gain:.025});},
   win(){tone({freq:523,type:"sine",dur:.5,gain:.05});tone({freq:784,type:"sine",dur:.6,gain:.05,delay:.12});},
@@ -233,19 +247,19 @@ async function openCase(n){
     const view=d.view,opened=view.opened_briefcases.find(o=>o.number===n);
     updateRails(view);                                   /* the value dies in the rail */
     if(opened){
-      const max=Math.max(...allValues(view)),isHigh=Number(opened.value)>=max*0.5;
-      killValue(opened.value,isHigh);                    /* it hurts to lose a big one */
-      await revealOpened(n,opened.value,isHigh);
+      const max=Math.max(...allValues(view)),val=Number(opened.value),isHigh=val>=max*0.5;
+      killValue(opened.value,isHigh,val===max);          /* the stage flinches for the top prize */
+      await revealOpened(n,opened.value,max);
     }
     render(view);                                        /* settle: next open, or the offer */
   }finally{busy=false;}
 }
-async function revealOpened(n,value,isHigh){
-  S.open(isHigh);
+async function revealOpened(n,value,max){
+  S.open(Number(value),max);
   focal.innerHTML="";
   const box=el("div","opened land");
   box.appendChild(el("div","opened-num","maleta "+n));
-  box.appendChild(el("div","opened-val amount"+(isHigh?" bad":""),money(value)));
+  box.appendChild(el("div","opened-val amount"+(Number(value)>=max*0.5?" bad":""),money(value)));
   focal.appendChild(box);
   await beat(760);                                       /* the weight of the revelation */
 }
@@ -272,10 +286,12 @@ function updateRails(view){
   const dead=new Set(view.opened_briefcases.map(o=>Number(o.value)));
   valNodes.forEach((node,v)=>{const d=dead.has(v);node.classList.toggle("dead",d);if(d)node.classList.remove("apex");});
 }
-function killValue(value,isHigh){
+function killValue(value,isHigh,isApex){
   const node=valNodes.get(Number(value));if(!node)return;
   node.classList.add("dying");if(isHigh)node.classList.add("big");
   setTimeout(()=>node.classList.remove("dying","big"),isHigh?700:520);
+  if(isApex){const a=document.querySelector(".arena");a.classList.add("flinch");
+    setTimeout(()=>a.classList.remove("flinch"),520);}   /* the palco feels the top prize die */
 }
 
 function myCaseEl(view,reveal){
