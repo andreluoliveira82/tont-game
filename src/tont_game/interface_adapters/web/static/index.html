@@ -6,7 +6,7 @@
 <title>Topa ou Não Topa</title>
 <style>
   :root{
-    --bg:#080809; --bg-2:#0e0e12; --ink:#efe9dc; --muted:#8b8578; --faint:#57534a;
+    --bg:#050506; --bg-2:#0c0c10; --ink:#efe9dc; --muted:#8b8578; --faint:#57534a;
     --gold:#e8c877; --gold-deep:#b98c34; --danger:#c9736b;
     --edge:rgba(232,200,119,.16); --ease:cubic-bezier(.2,.7,.2,1);
     font-synthesis:none;-webkit-text-size-adjust:100%;
@@ -18,9 +18,11 @@
     font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
     letter-spacing:.2px;transition:background 1200ms var(--ease);}
   #glow{position:fixed;inset:0;z-index:1;pointer-events:none;
-    background:radial-gradient(56% 44% at 50% 40%, rgba(232,200,119,.20), transparent 70%);
-    opacity:.5;transition:opacity 1200ms var(--ease),filter 1200ms var(--ease);
-    animation:glowBreath 9s ease-in-out infinite;}          /* the light never stops breathing */
+    background:
+      radial-gradient(38% 30% at 50% 36%, rgba(232,200,119,.32) 0%, transparent 70%),
+      radial-gradient(66% 54% at 50% 40%, rgba(232,200,119,.10) 0%, transparent 72%);
+    opacity:.62;transition:opacity 1200ms var(--ease),filter 1200ms var(--ease);
+    animation:glowBreath 9s ease-in-out infinite;}          /* a real spotlight that breathes */
   @keyframes glowBreath{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
   #dust{position:fixed;inset:0;z-index:1;pointer-events:none;}
   #fx{position:fixed;inset:0;z-index:7;pointer-events:none;}
