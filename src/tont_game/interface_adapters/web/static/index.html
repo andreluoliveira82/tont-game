@@ -31,6 +31,8 @@
   body.cool{background:radial-gradient(120% 80% at 50% 6%, #0d1014, #0b0c0f 45%, var(--bg));}
   body.floor{background:radial-gradient(120% 80% at 50% 6%, #0f0f10, #0a0a0b 45%, var(--bg));}
   body.apotheosis{background:radial-gradient(120% 85% at 50% 4%, #221805, #14100a 42%, var(--bg));}
+  body.call #glow{opacity:.05;filter:saturate(.35) brightness(.7);}
+  body.call{background:radial-gradient(120% 80% at 50% 6%, #0b0c10, #090a0c 45%, #050506);}
   body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:6;
     background:radial-gradient(150% 105% at 50% 45%, transparent 52%, rgba(0,0,0,.62) 100%);}
 
@@ -385,20 +387,23 @@ function ghostsEl(view){
   refused.forEach(v=>wrap.appendChild(el("div","ghost"+(v===maxRef?" peak":""),money(v))));
   return wrap;
 }
-const OFFER_LINES=["o telefone toca…","o banqueiro ficou em silêncio…","ele está olhando o painel…",
-  "ele percebeu algo…","essa oferta parece importante…","acho que ele quer que você desista agora…",
-  "ele ainda não respondeu…","o telefone continua mudo…","o estúdio inteiro está esperando…",
-  "ele não tem pressa…","o silêncio pesa no estúdio…","ele parece confiante…"];
+const BANKER_POOL=[["ele olha para o painel…",1400],["ele olha para a sua maleta…",1400],
+  ["ele sorri…",1150],["ele escuta… e não responde…",1650],["o estúdio inteiro espera…",1500],
+  ["ele não tem pressa…",1400],["mais silêncio…",1500],["ele percebeu algo…",1450],
+  ["o telefone continua mudo…",1550]];
 function pickN(a,n){const pool=[...a],out=[];while(out.length<n&&pool.length)out.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);return out;}
+function bankerScript(r){const n=r<=3?1:r<=6?2:3;
+  return [["o telefone toca…",1300],...pickN(BANKER_POOL,n).map(([t,m])=>[t,m+r*80])];}
 async function sayLine(text,ms){focal.innerHTML="";focal.appendChild(el("div","kicker pulse",text));await beat(ms);}
 async function playOffer(view){
-  setMood("tense");S.phone();
-  const r=view.current_round;                       /* tension rises with the round */
-  const n=r<=3?1:r<=6?2:3;                            /* later: more lines, longer, quieter */
-  for(const line of pickN(OFFER_LINES,n))await sayLine(line,1250+r*110);
-  await sayLine("…",700+r*70);                        /* he listens */
-  focal.innerHTML="";await beat(500+r*140);           /* the silence deepens with tension */
-  setMood(null);buildOffer(view,true);               /* the number lands; the board stays for comparison */
+  const r=view.current_round;                              /* tension rises with the round */
+  document.body.classList.add("call");ambSet(.28,.7);S.phone();  /* the whole stage changes */
+  for(const[text,ms]of bankerScript(r))await sayLine(text,ms);
+  focal.innerHTML="";await beat(700+r*160);                /* an uncomfortable silence — did it break? */
+  await sayLine("a proposta do Banqueiro…",1200);
+  focal.innerHTML="";await beat(480);
+  document.body.classList.remove("call");ambSet(1,1.4);    /* the lights return */
+  setMood(null);buildOffer(view,true);                     /* only then: the number lands */
 }
 
 function revealStory(view){
