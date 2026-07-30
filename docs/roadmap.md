@@ -443,6 +443,23 @@ Principais entregas:
 
 ---
 
+# Roadmap 2.0 — Fases futuras (propostas, NÃO aprovadas)
+
+As Fases 0–10.5 acima constituem o **Ciclo 1**, concluído: baseline estável, com
+uma versão jogável pela CLI. As fases a seguir são **propostas de evolução —
+ainda NÃO aprovadas** para implementação; cada uma exige autorização explícita e
+não deve ser iniciada automaticamente.
+
+- **Fase 11 (proposta) — Persistência de partidas concluídas + histórico entre execuções:** persistir cada `GameRecord` encerrado (porta de saída + arquivo, **não** banco de dados) e permitir rever partidas passadas. É a base ("keystone") das fases seguintes.
+- **Fase 12 (proposta) — Distribuição para jogadores reais:** empacotamento/publicação do console script já existente, para uso por não-desenvolvedores.
+- **Fase 13 (proposta) — Superfície de configuração:** expor valores/sequência/percentuais/estratégia (já injetáveis no código), orientada a um driver concreto.
+- **Fase 14 (proposta) — Analytics / visão administrativa:** análise do histórico acumulado; depende da Fase 11 e de volume de dados reais.
+- **Fase 15 (proposta) — GUI:** segunda interface gráfica reutilizando o núcleo, somente com demanda validada.
+
+**Backlog não priorizado:** simulação progressiva/retrospectiva pós-Topa; estratégias alternativas do Banqueiro; reconfiguração estrutural das regras; internacionalização; remoção do `GameStatus.FINAL_REVEAL` (dívida cosmética).
+
+---
+
 ## Definição de pronto
 
 Uma fase está concluída quando:

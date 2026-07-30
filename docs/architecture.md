@@ -114,6 +114,7 @@ tont-game/
 │       ├── interface_adapters/       # (Fase 8)
 │       │   └── cli/
 │       │       ├── controller.py     # CliController (game loop)
+│       │       ├── narration.py      # narração de encerramento (Fase 10.5)
 │       │       ├── presenters.py     # formatação PT-BR (format_money)
 │       │       └── views.py          # Console + TerminalConsole
 │       │
@@ -276,6 +277,7 @@ A CLI não deve conter regras de negócio. O Apresentador conduz o fluxo de inte
 - **`CliController`** (`controller.py`): o *game loop*. Orquestra os casos de uso existentes (`StartGame`, `SelectInitialBriefcase`, `OpenBriefcase`, `ProcessBankerOffer`, `DecideOffer`, `DecideFinalSwap`, `RunPostGameSimulation`), lê entradas, captura `DomainError` para reprompt e formata a saída via presenters. **Não** contém regra de negócio; depende de **ports** (`Clock`, `GameIdGenerator`, `RandomSource`, `BankerStrategy`), não de infraestrutura concreta.
 - **`presenters`** (`presenters.py`): funções **puras** que convertem objetos de domínio em texto PT-BR (inclui `format_money` → `R$ 1.000,00`, sem `locale`); sem I/O e sem regra.
 - **`views`** (`views.py`): a fronteira de I/O — `Console` (`Protocol`: `write`/`read_line`) e a implementação concreta `TerminalConsole` (`print`/`input`). Substituível por um dublê em testes.
+- **`narration`** (`narration.py`, Fase 10.5): funções **puras** que classificam o momento de encerramento (`PEAK`/`FLOOR`/`TRIUMPH`/`REGRET`) a partir de fatos da partida e fornecem o banco de mensagens PT-BR; sem I/O, sem aleatoriedade e sem regra. A seleção da variante (via `RandomSource` já existente) e a escrita ficam no controller.
 
 O **composition root** é o `__main__.py`: monta a infraestrutura concreta (`DefaultRandomSource`, `SystemClock`, `UuidGameIdGenerator`), a estratégia e o `CliController`, e roda a partida (seed opcional via argumento). Assim, a infraestrutura concreta fica restrita ao entry point; o domínio e a aplicação permanecem sem `print`/`input`, preservando a direção `Infrastructure → Interface Adapters → Application → Domain`.
 
