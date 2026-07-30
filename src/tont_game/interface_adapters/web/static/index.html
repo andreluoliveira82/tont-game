@@ -48,6 +48,14 @@
   .val.warm{color:#cdb98a;}
   .val.dead{color:var(--faint);opacity:.36;text-decoration:line-through;
     text-shadow:none;transform:translateX(0) scale(.96);}
+  .val.apex{animation:apexGlow 3s ease-in-out infinite;}
+  @keyframes apexGlow{0%,100%{text-shadow:0 0 12px rgba(232,200,119,.32);}50%{text-shadow:0 0 22px rgba(232,200,119,.62);}}
+  .val.dying{animation:shake .5s var(--ease);}
+  @keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-3px);}50%{transform:translateX(3px);}75%{transform:translateX(-2px);}}
+  .val.dying.big{color:var(--danger)!important;text-shadow:0 0 18px rgba(201,115,107,.55)!important;
+    animation:shakeBig .68s var(--ease);}
+  @keyframes shakeBig{0%{transform:translateX(0) scale(1.18);}15%{transform:translateX(-6px);}
+    32%{transform:translateX(6px);}50%{transform:translateX(-5px);}68%{transform:translateX(4px);}100%{transform:translateX(0) scale(1);}}
 
   .stage{min-width:0;display:flex;flex-direction:column;overflow:hidden;}
   .marquee{display:flex;justify-content:space-between;align-items:baseline;color:var(--faint);
@@ -204,8 +212,9 @@ async function openCase(n){
     const view=d.view,opened=view.opened_briefcases.find(o=>o.number===n);
     updateRails(view);                                   /* the value dies in the rail */
     if(opened){
-      const max=Math.max(...allValues(view));
-      await revealOpened(n,opened.value,Number(opened.value)>=max*0.5);
+      const max=Math.max(...allValues(view)),isHigh=Number(opened.value)>=max*0.5;
+      killValue(opened.value,isHigh);                    /* it hurts to lose a big one */
+      await revealOpened(n,opened.value,isHigh);
     }
     render(view);                                        /* settle: next open, or the offer */
   }finally{busy=false;}
@@ -230,6 +239,7 @@ function buildRails(view){
   const asc=allValues(view).sort((a,b)=>a-b),max=asc[asc.length-1]||0;
   const mk=(v)=>{const n=el("div","val",money(v));
     if(v>=max*0.5)n.classList.add("hot");else if(v>=max*0.1)n.classList.add("warm");
+    if(v===max)n.classList.add("apex");        /* the top dream glimmers */
     valNodes.set(v,n);return n;};
   const half=Math.ceil(asc.length/2);
   asc.slice(0,half).forEach(v=>railL.appendChild(mk(v)));   /* menores, crescente */
@@ -239,7 +249,12 @@ function buildRails(view){
 function updateRails(view){
   if(!railBuilt)buildRails(view);
   const dead=new Set(view.opened_briefcases.map(o=>Number(o.value)));
-  valNodes.forEach((node,v)=>node.classList.toggle("dead",dead.has(v)));
+  valNodes.forEach((node,v)=>{const d=dead.has(v);node.classList.toggle("dead",d);if(d)node.classList.remove("apex");});
+}
+function killValue(value,isHigh){
+  const node=valNodes.get(Number(value));if(!node)return;
+  node.classList.add("dying");if(isHigh)node.classList.add("big");
+  setTimeout(()=>node.classList.remove("dying","big"),isHigh?700:520);
 }
 
 function myCaseEl(view,reveal){
