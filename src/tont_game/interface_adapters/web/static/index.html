@@ -134,7 +134,13 @@
   .ghost-label{color:var(--faint);font-size:.62rem;letter-spacing:.24em;text-transform:uppercase;}
   .ghost{font-size:.72rem;color:var(--muted);font-variant-numeric:tabular-nums;
     border:1px solid rgba(255,255,255,.07);border-radius:999px;padding:4px 11px;
-    background:rgba(255,255,255,.02);}
+    background:rgba(255,255,255,.02);animation:float 4.2s ease-in-out infinite;}
+  @keyframes float{0%,100%{transform:translateY(0);opacity:.55;}50%{transform:translateY(-2px);opacity:.82;}}
+  .ghost.peak{color:var(--gold);border-color:rgba(232,200,119,.3);}
+  .ghosts.haunt{opacity:.9;}
+  .ghosts.haunt .ghost-label{color:var(--danger);}
+  .ghosts.haunt .ghost.peak{color:var(--danger);border-color:rgba(201,115,107,.42);
+    text-shadow:0 0 13px rgba(201,115,107,.4);}
   .opened{display:flex;flex-direction:column;align-items:center;gap:8px;}
   .opened-num{color:var(--faint);font-family:ui-sans-serif,system-ui,sans-serif;font-size:.68rem;
     letter-spacing:.28em;text-transform:uppercase;}
@@ -314,12 +320,13 @@ function buildOffer(view,animate){
   const nao=el("button","act ghost","Não topa");
   nao.onclick=()=>{S.click();refused.push(Number(view.current_offer));act("decide",{accept:false});};
   row.append(topa,nao);focal.appendChild(row);
-  if(refused.length)focal.appendChild(ghostsEl());
+  if(refused.length)focal.appendChild(ghostsEl(view));
 }
-function ghostsEl(){
-  const wrap=el("div","ghosts fade-in");
-  wrap.appendChild(el("div","ghost-label","você já recusou"));
-  refused.forEach(v=>wrap.appendChild(el("div","ghost",money(v))));
+function ghostsEl(view){
+  const cur=Number(view.current_offer),maxRef=Math.max(...refused),shrinking=cur<maxRef;
+  const wrap=el("div","ghosts fade-in"+(shrinking?" haunt":""));
+  wrap.appendChild(el("div","ghost-label",shrinking?"você já recusou até":"você já recusou"));
+  refused.forEach(v=>wrap.appendChild(el("div","ghost"+(v===maxRef?" peak":""),money(v))));
   return wrap;
 }
 const OFFER_LINES=["o telefone toca…","o banqueiro ficou em silêncio…","ele está olhando o painel…",
