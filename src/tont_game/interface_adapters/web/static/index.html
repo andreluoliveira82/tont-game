@@ -461,24 +461,33 @@ async function playOffer(view){
 }
 
 function revealStory(view){
+  /* judges the STORY of the match, not the money alone (calibrated to real examples) */
   const r=view.official_result,got=Number(r.amount_received),own=Number(r.player_briefcase_value);
   const all=allValues(view),mx=Math.max(...all),mn=Math.min(...all);
   const maxRef=refused.length?Math.max(...refused):0;      /* the biggest offer he passed up */
   const gambled=r.ending_type!=="OFFER_ACCEPTED";          /* did he risk it to the end? */
+  const swapped=r.swap_decision===true;
   if(got===mx)return{mood:"apotheosis",gold:true,tag:"vitória milionária",
-    head:"O MAIOR prêmio da mesa. Não dá pra fazer melhor do que isso."};
-  if(maxRef>got*1.6)return{mood:"floor",gold:false,tag:"que tragédia",
-    head:`Você recusou ${money(maxRef)}… e saiu com ${money(got)}.`};
+    head:"O MAIOR prêmio da mesa. Você chegou ao topo — não dá pra fazer melhor."};
   if(got===mn)return{mood:"floor",gold:false,tag:"o fundo da mesa",
-    head:"O piso da tabela — mas você encarou o Banqueiro até o fim."};
-  if(gambled&&got>=Math.max(own,maxRef))return{mood:"apotheosis",gold:true,tag:"que coragem",
-    head:"Você arriscou até o fim — e a aposta valeu."};
-  if(!gambled&&own>got*1.6)return{mood:"cool",gold:false,tag:"o banqueiro venceu",
-    head:`A sua maleta escondia ${money(own)}. Ele te convenceu a sair cedo.`};
-  if(maxRef>got)return{mood:"cool",gold:false,tag:"ficou o gosto",
-    head:`Já teve ${money(maxRef)} na mão… e levou ${money(got)}.`};
-  if(got>=own)return{mood:"warm",gold:true,tag:"boa saída",head:"Você soube a hora de sair."};
-  return{mood:"warm",gold:true,tag:"fim de jogo",head:"Uma partida e tanto."};
+    head:"O menor prêmio de todos. A sorte virou as costas — mas você foi até o fim."};
+  if(maxRef>=got*3)return{mood:"floor",gold:false,tag:"que tragédia",
+    head:`Você recusou ${money(maxRef)}… e terminou com ${money(got)}. A ganância cobrou caro.`};
+  if(gambled&&maxRef>0&&got>=maxRef*1.4&&got>=own)return{mood:"apotheosis",gold:true,tag:"que coragem",
+    head:`Você recusou tudo, arriscou até o fim — e saiu com ${money(got)}. Brilhante.`};
+  if(gambled&&swapped&&got>own*1.3)return{mood:"warm",gold:true,tag:"que troca!",
+    head:`Você trocou no fim, e a coragem valeu: ${money(got)}.`};
+  if(gambled&&swapped&&got<own*0.6)return{mood:"cool",gold:false,tag:"a troca doeu",
+    head:`Você trocou… e deixou ${money(own)} para trás. Fica o aprendizado.`};
+  if(!gambled&&own>=got*2.5)return{mood:"cool",gold:false,tag:"o banqueiro venceu",
+    head:`Você aceitou ${money(got)}, mas a sua maleta escondia ${money(own)}. Ele te convenceu a sair cedo.`};
+  if(maxRef>=got*1.8)return{mood:"cool",gold:false,tag:"faltou pouco",
+    head:`Já teve ${money(maxRef)} na mão e levou ${money(got)}. Por pouco.`};
+  if(!gambled&&got>=own*0.85)return{mood:"warm",gold:true,tag:"decisão sábia",
+    head:`Você saiu na hora certa com ${money(got)}. Cabeça fria, boa partida.`};
+  if(gambled&&got>=own)return{mood:"warm",gold:true,tag:"você confiou",
+    head:`Você confiou na sua maleta até o fim e levou ${money(got)}.`};
+  return{mood:"warm",gold:true,tag:"boa partida",head:`Uma partida e tanto — você levou ${money(got)}.`};
 }
 function revealControls(view){
   const row=el("div","choices fade-in");
