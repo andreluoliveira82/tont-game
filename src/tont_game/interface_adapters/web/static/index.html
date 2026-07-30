@@ -133,6 +133,8 @@
   .opened-val{font-variant-numeric:tabular-nums;font-weight:600;color:var(--muted);
     font-size:clamp(1.7rem,8vw,3.2rem);}
   .opened-val.bad{color:var(--danger);}
+  .curtain{color:var(--faint);font-family:ui-sans-serif,system-ui,sans-serif;font-size:.64rem;
+    letter-spacing:.42em;text-transform:uppercase;margin-top:2px;}
 
   .fade-in{animation:fade 520ms var(--ease) both;}
   @keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
@@ -325,34 +327,43 @@ function revealMood(view){
   if(got>=own)return{mood:"warm",gold:true,head:"Você levou a melhor."};
   return{mood:"cool",gold:false,head:"Dessa vez o Banqueiro venceu."};
 }
-function buildReveal(view,animate){
-  const r=view.official_result,m=revealMood(view);setMood(m.mood);
-  if(animate){(m.mood==="cool"||m.mood==="floor")?S.loss():S.win();}
-  focal.innerHTML="";
-  const mine=myCaseEl(view,true);if(mine)focal.appendChild(mine);
-  focal.append(el("div","kicker","você levou"),
-    el("div","offer amount "+(m.gold?"gold":"sober")+" "+(animate?"land":"fade-in"),money(r.amount_received)),
-    el("div","lead"+(animate?" fade-in":""),m.head),
-    el("div","lead"+(animate?" fade-in":""),`A sua maleta guardava ${money(r.player_briefcase_value)}.`));
-  if(view.simulation){const s=view.simulation;
-    focal.appendChild(el("div","lead fade-in",
-      `Se tivesse seguido: ${money(s.hypothetical)} — ${s.hypothetical_is_higher?"teria ganhado mais.":"você fez bem em aceitar."}`));}
+function revealControls(view){
   const row=el("div","choices fade-in");
   if(view.available_actions.includes("simulate")){const b=el("button","act","Ver o que teria acontecido");b.onclick=()=>{S.click();act("simulate",{});};row.appendChild(b);}
   const again=el("button","act ghost","Jogar de novo");again.onclick=()=>{S.click();start();};row.appendChild(again);
-  focal.appendChild(row);
+  return row;
 }
-async function playReveal(view){
-  setMood("tense");focal.innerHTML="";
-  focal.appendChild(el("div","kicker pulse","abrindo…"));
-  await beat(1700);buildReveal(view,true);
+async function buildReveal(view,animate){
+  const r=view.official_result,m=revealMood(view);
+  if(animate){                                   /* the held breath before the truth */
+    setMood("tense");focal.innerHTML="";
+    focal.appendChild(el("div","kicker pulse","o momento da verdade…"));
+    await beat(2300);
+  }
+  setMood(m.mood);                               /* the world transforms with the outcome */
+  if(animate)((m.mood==="cool"||m.mood==="floor")?S.loss():S.win());
+  focal.innerHTML="";
+  const mine=myCaseEl(view,true);if(mine)focal.appendChild(mine);
+  focal.append(el("div","kicker","você levou"),
+    el("div","offer amount "+(m.gold?"gold":"sober")+" "+(animate?"land":"fade-in"),money(r.amount_received)));
+  if(animate)await beat(1200);
+  focal.appendChild(el("div","lead"+(animate?" fade-in":""),m.head));
+  if(animate)await beat(900);
+  focal.appendChild(el("div","lead"+(animate?" fade-in":""),`A sua maleta guardava ${money(r.player_briefcase_value)}.`));
+  if(view.simulation){const s=view.simulation;
+    if(animate)await beat(750);
+    focal.appendChild(el("div","lead fade-in",
+      `Se tivesse seguido: ${money(s.hypothetical)} — ${s.hypothetical_is_higher?"teria ganhado mais.":"você fez bem em aceitar."}`));}
+  if(animate)await beat(1000);                   /* a dignified pause — the curtain falls */
+  focal.appendChild(el("div","curtain fade-in","— fim de jogo —"));
+  focal.appendChild(revealControls(view));
 }
 
 async function render(view){
   errBox.textContent=view.error||"";setHud(view);updateRails(view);
   const s=view.status,was=prevStatus;
   if(s==="OFFER_PENDING") was!=="OFFER_PENDING"?await playOffer(view):buildOffer(view,false);
-  else if(s==="ACCEPTED"||s==="FINISHED") (was==="ACCEPTED"||was==="FINISHED")?buildReveal(view,false):await playReveal(view);
+  else if(s==="ACCEPTED"||s==="FINISHED") (was==="ACCEPTED"||was==="FINISHED")?buildReveal(view,false):await buildReveal(view,true);
   else if(s==="NOT_STARTED") sceneChoose(view);
   else if(s==="IN_PROGRESS") sceneHunt(view);
   else sceneEndgame(view);
