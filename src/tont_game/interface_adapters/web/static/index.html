@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Topa ou Não Topa</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 720px; margin: 1rem auto;
+         padding: 0 1rem; line-height: 1.5; }
+  h1 { font-size: 1.2rem; }
+  .row { margin: 0.6rem 0; }
+  button { margin: 2px; padding: 6px 10px; cursor: pointer; }
+  .muted { color: #666; font-size: 0.9rem; }
+  .error { color: #b00; }
+  .box { border: 1px solid #ccc; padding: 0.6rem; border-radius: 6px; }
+  code { background: #f2f2f2; padding: 0 3px; }
+</style>
+</head>
+<body>
+<h1>Topa ou Não Topa <span class="muted">— versão funcional (Sprint 1)</span></h1>
+<div id="game"></div>
+
+<script>
+const $ = (html) => { const d = document.createElement("div"); d.innerHTML = html; return d; };
+let sessionId = null;
+
+async function post(path, payload) {
+  const res = await fetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload || {}),
+  });
+  return res.json();
+}
+
+async function start() {
+  const data = await post("/api/start", {});
+  sessionId = data.session_id;
+  render(data.view);
+}
+
+async function act(action, params) {
+  const data = await post("/api/act", { session_id: sessionId, action, params: params || {} });
+  render(data.view);
+}
+
+const money = (v) => (v == null ? "—" : "R$ " + v);
+
+function actionsHtml(view) {
+  const a = view.available_actions;
+  if (a.includes("select_briefcase")) {
+    let b = "<div class='row'><b>Escolha a sua maleta:</b><br/>";
+    for (let n = 1; n <= 26; n++) b += `<button onclick="act('select_briefcase',{number:${n}})">${n}</button>`;
+    return b + "</div>";
+  }
+  if (a.includes("open_briefcase")) {
+    let b = `<div class='row'><b>Abra uma maleta (${view.openings_remaining} nesta rodada):</b><br/>`;
+    for (const n of view.available_briefcases) b += `<button onclick="act('open_briefcase',{number:${n}})">${n}</button>`;
+    return b + "</div>";
+  }
+  if (a.includes("decide")) {
+    return `<div class='row'><b>OFERTA DO BANQUEIRO: ${money(view.current_offer)}</b><br/>
+      <button onclick="act('decide',{accept:true})">TOPA</button>
+      <button onclick="act('decide',{accept:false})">NÃO TOPA</button></div>`;
+  }
+  if (a.includes("decide_swap")) {
+    return `<div class='row'><b>Restam duas maletas. Trocar a sua pela última?</b><br/>
+      <button onclick="act('decide_swap',{swap:true})">TROCAR</button>
+      <button onclick="act('decide_swap',{swap:false})">MANTER</button></div>`;
+  }
+  if (a.includes("simulate")) {
+    return `<div class='row'><button onclick="act('simulate',{})">Simular o que teria acontecido</button></div>`;
+  }
+  return `<div class='row'><button onclick="start()">Nova partida</button></div>`;
+}
+
+function resultHtml(r) {
+  if (!r) return "";
+  return `<div class='row box'><b>Resultado:</b> ${r.ending_type} · você levou <b>${money(r.amount_received)}</b>
+    · a sua maleta valia ${money(r.player_briefcase_value)}</div>`;
+}
+
+function simulationHtml(s) {
+  if (!s) return "";
+  return `<div class='row box'>Oficial: ${money(s.official)} · Hipotético: ${money(s.hypothetical)}
+    · Diferença: ${money(s.difference)} · ${s.hypothetical_is_higher ? "teria ganhado mais" : "fez bem em aceitar"}</div>`;
+}
+
+function render(view) {
+  const g = document.getElementById("game");
+  const p = view.player_briefcase;
+  let html = "";
+  if (view.error) html += `<div class='row error'>${view.error}</div>`;
+  html += `<div class='row muted'>status: <code>${view.status}</code> · rodada ${view.current_round}
+    · sua maleta: ${p ? p.number : "—"}${p && p.value ? " (" + money(p.value) + ")" : ""}
+    · maletas fechadas restantes: ${view.remaining_values.length}</div>`;
+  html += actionsHtml(view);
+  html += resultHtml(view.official_result);
+  html += simulationHtml(view.simulation);
+  html += `<div class='row muted'>Valores ainda em jogo: ${view.remaining_values.map(money).join(" · ")}</div>`;
+  if (view.opened_briefcases.length)
+    html += `<div class='row muted'>Abertas: ${view.opened_briefcases.map(o => o.number + "=" + money(o.value)).join(" · ")}</div>`;
+  g.innerHTML = "";
+  g.appendChild($(html));
+}
+
+start();
+</script>
+</body>
+</html>
