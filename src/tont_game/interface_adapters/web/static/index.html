@@ -350,6 +350,10 @@ const Music=(function(){
       [[262,330,392],[349,440,523],[392,494,587],[523,659,784]].forEach((ch,k)=>setTimeout(()=>{clearNotes(.9);chord(ch,"triangle",.11);},k*640));},
     tragedy(){const c=ensure();if(!c)return;stopTheme(.1);current="loss";master.gain.setTargetAtTime(.7,c.currentTime,.6);
       chord([98,117,147],"sine",.08);setTimeout(()=>{clearNotes(1.6);chord([87,104,131],"sine",.075);},1500);},
+    resolve(sec){const c=ac();if(!c||!master)return;const t=c.currentTime,d=sec||4;   /* the scene resolves — an intentional fade, not a cut */
+      clearNotes(1.5);current=null;master.gain.cancelScheduledValues(t);
+      try{master.gain.setValueAtTime(master.gain.value,t);}catch(e){}
+      master.gain.linearRampToValueAtTime(.0001,t+d);},
   };
 })();
 const S={
@@ -415,13 +419,13 @@ const Crowd=(function(){
   };
 })();
 
-let sessionId=null, prevStatus=null, railBuilt=false, refused=[];
+let sessionId=null, prevStatus=null, railBuilt=false, refused=[], revealResolveTimer=null;
 const valNodes=new Map();
 const railL=document.getElementById("railL"),railR=document.getElementById("railR");
 const focal=document.getElementById("focal"),hud=document.getElementById("hud"),errBox=document.getElementById("err");
 
 async function post(p,d){const r=await fetch(p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(d||{})});return r.json();}
-async function start(){document.body.className="";railBuilt=false;refused=[];railL.innerHTML="";railR.innerHTML="";valNodes.clear();ambSet(1,.6);Music.silence();
+async function start(){if(revealResolveTimer){clearTimeout(revealResolveTimer);revealResolveTimer=null;}document.body.className="";railBuilt=false;refused=[];railL.innerHTML="";railR.innerHTML="";valNodes.clear();ambSet(1,.6);Music.silence();
   const d=await post("/api/start",{});sessionId=d.session_id;prevStatus=null;
   await intro();render(d.view);}
 async function intro(){
@@ -646,6 +650,13 @@ async function buildReveal(view,animate){
   if(animate)await beat(win?1500:1200);          /* time to feel it before the controls */
   focal.appendChild(el("div","curtain fade-in","— fim de jogo —"));
   focal.appendChild(revealControls(view));
+  if(animate){                                   /* brief sustain, then the scene resolves into rest */
+    if(revealResolveTimer)clearTimeout(revealResolveTimer);
+    revealResolveTimer=setTimeout(()=>{revealResolveTimer=null;
+      Music.resolve(win?4:5.5);                  /* tragedy dies away slower, colder */
+      if(win)ambSet(.5,4);                        /* the boosted room tone settles back to rest */
+    },win?1800:2400);
+  }
 }
 
 async function render(view){
