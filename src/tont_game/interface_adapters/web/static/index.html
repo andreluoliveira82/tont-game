@@ -200,6 +200,28 @@
   button.act.primary{border-color:var(--gold-deep);color:var(--gold);
     background:linear-gradient(180deg,rgba(232,200,119,.18),rgba(232,200,119,.05));}
   button.act.ghost{opacity:.72;}
+  /* THE DECISION — two heavy, opposed plaques: gold that invites vs red that dares */
+  .choices.decision{gap:clamp(16px,3.4vw,40px);margin-top:6px;}
+  .act.big{font-size:clamp(.92rem,2.3vw,1.14rem);padding:clamp(15px,2.2vw,21px) clamp(30px,4.4vw,52px);
+    border-radius:14px;letter-spacing:.24em;min-width:clamp(140px,21vw,208px);
+    position:relative;overflow:hidden;font-weight:600;transition:transform .24s var(--ease),box-shadow .24s var(--ease),border-color .24s var(--ease);}
+  .act.big::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+    background:linear-gradient(115deg,transparent 38%,rgba(255,255,255,.28) 50%,transparent 62%);
+    transform:translateX(-120%);transition:transform .6s var(--ease);}
+  .act.big:hover::after{transform:translateX(120%);}
+  .act.yes{color:#1b1305;border:1px solid var(--gold);
+    background:linear-gradient(180deg,#f6dc93 0%,#dcb054 58%,#b9862f 100%);
+    box-shadow:0 14px 32px rgba(0,0,0,.5),0 0 44px rgba(232,200,119,.34),inset 0 1px 0 rgba(255,255,255,.55);
+    text-shadow:0 1px 0 rgba(255,255,255,.35);}
+  .act.yes:hover{transform:translateY(-4px) scale(1.035);border-color:#ffe8a8;
+    box-shadow:0 22px 46px rgba(0,0,0,.56),0 0 70px rgba(232,200,119,.6),inset 0 1px 0 rgba(255,255,255,.65);}
+  .act.no{color:#f1cfc8;border:1px solid rgba(201,100,88,.55);
+    background:linear-gradient(180deg,rgba(66,22,20,.62),rgba(26,10,10,.72));
+    box-shadow:0 14px 32px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.05);}
+  .act.no:hover{transform:translateY(-4px) scale(1.02);border-color:#cf5a41;color:#ffe0da;
+    box-shadow:0 22px 46px rgba(0,0,0,.56),0 0 46px rgba(201,74,58,.4);}
+  .focal.pushin{animation:pushin 6.5s ease-out both;}     /* the camera slowly pushes in on the money */
+  @keyframes pushin{from{transform:scale(1);}to{transform:scale(1.035);}}
   .err{color:var(--danger);font-family:ui-sans-serif,system-ui,sans-serif;font-size:.8rem;
     min-height:1.1em;text-align:center;}
   .ghosts{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center;
@@ -510,10 +532,11 @@ function buildOffer(view,animate){
   focal.append(el("div","kicker","a oferta do banqueiro"),
     el("div","offer amount gold "+(animate?"land":"fade-in"),money(view.current_offer)),
     el("div","lead"+(animate?" fade-in":""),"Vale a certeza… ou você acredita na sua maleta?"));
-  const row=el("div","choices"+(animate?" fade-in":""));
-  const topa=el("button","act primary","Topa");
+  if(animate)focal.classList.add("pushin");              /* camera push-in on the number */
+  const row=el("div","choices decision"+(animate?" fade-in":""));
+  const topa=el("button","act big yes","Topa");
   topa.onclick=()=>{S.click();act("decide",{accept:true});};
-  const nao=el("button","act ghost","Não topa");
+  const nao=el("button","act big no","Não topa");
   nao.onclick=()=>{S.click();refused.push(Number(view.current_offer));act("decide",{accept:false});};
   row.append(topa,nao);focal.appendChild(row);
   if(refused.length)focal.appendChild(ghostsEl(view));
@@ -617,6 +640,7 @@ async function buildReveal(view,animate){
 
 async function render(view){
   errBox.textContent=view.error||"";setHud(view);updateRails(view);
+  if(view.status!=="OFFER_PENDING")focal.classList.remove("pushin");   /* end the push-in when the scene changes */
   const s=view.status,was=prevStatus;
   if(s==="OFFER_PENDING") was!=="OFFER_PENDING"?await playOffer(view):buildOffer(view,false);
   else if(s==="ACCEPTED"||s==="FINISHED") (was==="ACCEPTED"||was==="FINISHED")?buildReveal(view,false):await buildReveal(view,true);
