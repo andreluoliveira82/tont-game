@@ -24,6 +24,14 @@
     opacity:.62;transition:opacity 1200ms var(--ease),filter 1200ms var(--ease);
     animation:glowBreath 9s ease-in-out infinite;}          /* a real spotlight that breathes */
   @keyframes glowBreath{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
+  #rays{position:fixed;inset:-25%;z-index:1;pointer-events:none;opacity:0;transform-origin:50% 40%;
+    background:repeating-conic-gradient(from 0deg at 50% 40%,
+      rgba(232,200,119,.14) 0deg 6deg, transparent 6deg 30deg);
+    transition:opacity 1.6s var(--ease);animation:sweep 30s linear infinite;
+    mix-blend-mode:screen;filter:blur(1px);}       /* rotating god-rays for the celebration */
+  @keyframes sweep{to{transform:rotate(360deg);}}
+  body.warm #rays{opacity:.42;}
+  body.apotheosis #rays{opacity:.95;}
   #dust{position:fixed;inset:0;z-index:1;pointer-events:none;}
   #fx{position:fixed;inset:0;z-index:7;pointer-events:none;}
   #alert{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0;
@@ -266,6 +274,7 @@
 <div id="backdrop"></div>
 <div id="floor"></div>
 <div id="glow"></div>
+<div id="rays"></div>
 <div id="alert"></div>
 <canvas id="dust"></canvas>
 <canvas id="fx"></canvas>
@@ -611,6 +620,7 @@ async function buildReveal(view,animate){
     await beat(win?2200:2700);                   /* tragedy waits longer, colder */
   }
   setMood(m.mood);                               /* two different universes */
+  if(animate&&win)focal.classList.add("pushin");  /* the camera closes in on the prize (wins only) */
   if(animate){
     if(win){ambSet(1.9,1.6);Music.victory();(m.mood==="apotheosis"?S.triumph():S.win());
       Crowd.stab([262,330,392,523],1.6,.10);          /* the orchestral hit on the win */
