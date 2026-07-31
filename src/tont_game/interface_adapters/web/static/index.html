@@ -379,7 +379,7 @@ const S={
       g.gain.setValueAtTime(.03,t+.38);g.gain.exponentialRampToValueAtTime(.0001,t+.46);
       lfo.connect(lg).connect(g.gain);o1.connect(g);o2.connect(g);g.connect(c.destination);
       o1.start(t);o2.start(t);lfo.start(t);o1.stop(t+.5);o2.stop(t+.5);lfo.stop(t+.5);};
-    ring(0);ring(.62);},
+    ring(0);ring(1.5);},   /* two clearly separate rings — a real call, not one blurred warble */
   land(){tone({freq:170,freq2:85,type:"sine",dur:.6,gain:.06});tone({freq:760,type:"sine",dur:.22,gain:.025});},
   win(){tone({freq:523,type:"sine",dur:.5,gain:.05});tone({freq:784,type:"sine",dur:.6,gain:.05,delay:.12});},
   triumph(){[523,659,784,1047].forEach((f,i)=>tone({freq:f,type:"sine",dur:.6,gain:.05,delay:i*.13}));},
