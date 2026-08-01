@@ -178,6 +178,7 @@
   .case.spent{cursor:default;opacity:.16;filter:saturate(.3);transform:none;box-shadow:none;
     border-color:rgba(255,255,255,.05);text-shadow:none;}
   .case.spent::before,.case.spent::after{opacity:0;}
+  .case.lifted{opacity:0;pointer-events:none;}    /* the chosen case has left the board — it is now in the front */
   .case.mine{border-color:var(--gold);cursor:default;color:#fff6de;
     transform:translateZ(34px) scale(1.05);       /* the player's case steps forward into the light */
     background:linear-gradient(180deg,rgba(255,255,255,.2),transparent 22%),
@@ -503,15 +504,17 @@ async function intro(){
 }
 async function act(a,p){const d=await post("/api/act",{session_id:sessionId,action:a,params:p||{}});render(d.view);}
 let busy=false;
-async function openCase(n){
+async function openCase(n,cellEl){
   if(busy)return;busy=true;S.click();
+  const rect=cellEl?cellEl.getBoundingClientRect():null;   /* where the case sits on the board — captured before anything moves */
+  if(cellEl)cellEl.classList.add("lifted");                /* the chosen case leaves the board */
   try{
     const d=await post("/api/act",{session_id:sessionId,action:"open_briefcase",params:{number:n}});
     const view=d.view,opened=view.opened_briefcases.find(o=>o.number===n);
     if(opened){
       const max=Math.max(...allValues(view)),val=Number(opened.value),b=val/(max||1);
       const tier=val===max?"apex":b>=0.10?"high":b>=0.01?"mid":"low";   /* how much money just died */
-      await revealOpened(n,val,max,view,tier);           /* aproxima → suspense → abre → impacto → esmaece */
+      await revealOpened(n,val,max,view,tier,rect);        /* travels out from the board → opens → travels back */
     }else updateRails(view);
     render(view);                                        /* settle: next open, or the offer */
   }finally{busy=false;}
@@ -531,15 +534,27 @@ function buildRcase(n,tier){
   tilt.append(body,lid);root.appendChild(tilt);
   return {root,value};
 }
-async function revealOpened(n,value,max,view,tier){
-  /* the SAME chosen briefcase comes forward and is opened — the board stays alive, dimmed, behind */
+async function revealOpened(n,value,max,view,tier,rect){
+  /* the SAME chosen briefcase leaves the board, travels to the front, opens, and returns — board stays alive behind */
   reveal.innerHTML="";
   const c=buildRcase(n,tier);
   c.value.textContent=money(value);
   c.value.classList.toggle("gold",tier==="high"||tier==="apex");
+  c.root.classList.remove("pre");                        /* start from rest so we can measure the true resting box */
   reveal.appendChild(c.root);reveal.classList.add("on");
-  void c.root.offsetWidth;                               /* reflow so the approach transition runs */
-  c.root.classList.remove("pre");                        /* TEMPO 1 — it comes to the front */
+  let inv=null;
+  if(rect&&rect.width){                                  /* FLIP: it IS the clicked cell — solid, in place — then travels forward */
+    const last=c.root.getBoundingClientRect();
+    const s=rect.width/last.width;
+    const dx=(rect.left+rect.width/2)-(last.left+last.width/2);
+    const dy=(rect.top+rect.height/2)-(last.top+last.height/2);
+    inv=`translate(${dx.toFixed(1)}px,${dy.toFixed(1)}px) scale(${s.toFixed(4)})`;
+    c.root.style.transition="none";c.root.style.transform=inv;
+    void c.root.offsetWidth;                             /* reflow so the trip animates from the cell */
+    c.root.style.transition="";c.root.style.transform=""; /* TEMPO 1 — it detaches and comes forward */
+  }else{                                                 /* fallback (no cell): the centred approach */
+    c.root.classList.add("pre");void c.root.offsetWidth;c.root.classList.remove("pre");
+  }
   S.suspense();                                          /* the held breath: "e agora?" */
   await beat(440);
   c.root.classList.add("open");                          /* TEMPO 2 — the lid lifts, the value rises from inside */
@@ -548,7 +563,10 @@ async function revealOpened(n,value,max,view,tier){
   updateRails(view);                                     /* the value dies in the rail — synced to the reveal */
   killValue(value,tier==="high"||tier==="apex",tier==="apex");   /* ooh + flinch + shatter, by tier */
   await beat(OPEN_HOLD[tier]);                           /* impacto proporcional */
-  c.root.classList.add("leaving");reveal.classList.add("out");    /* TEMPO 3 — esmaece, a maleta retorna */
+  reveal.classList.add("out");                           /* TEMPO 3 — esmaece; a maleta retorna ao seu lugar */
+  if(inv){c.root.style.transition=`transform ${OPEN_DECAY[tier]}ms var(--ease),opacity ${OPEN_DECAY[tier]}ms var(--ease)`;
+    c.root.style.transform=inv;c.root.style.opacity="0";}
+  else c.root.classList.add("leaving");
   await beat(OPEN_DECAY[tier]);
   reveal.classList.remove("on","out");reveal.innerHTML="";
 }
@@ -616,7 +634,7 @@ function sceneHunt(view){
   const grid=el("div","cases fade-in"),open=new Set(view.available_briefcases);
   for(let n=1;n<=26;n++){
     const isMine=view.player_briefcase&&view.player_briefcase.number===n;
-    if(open.has(n)){const c=el("div","case",String(n));c.onclick=()=>openCase(n);grid.appendChild(c);}
+    if(open.has(n)){const c=el("div","case",String(n));c.onclick=()=>openCase(n,c);grid.appendChild(c);}
     else grid.appendChild(el("div","case "+(isMine?"mine":"spent"),isMine?"★":""));
   }
   focal.appendChild(grid);
